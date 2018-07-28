@@ -6,13 +6,18 @@ class dnssd{
 	constructor(){
 
 	}
-	generateAnyQuery(Instance,Service){
+	generateQuery(Instance,Service,type){
 			let obj={};
 			obj={
 				name:Instance+"._"+Service+"._udp",
-				type:'ANY'
+				type:type
 			}
 			return obj; 
+	}
+	generateResponse(){
+		let obj={};
+
+		return obj;
 	}
 	generatePTR(Instance,Service){
 		let obj={};
@@ -86,7 +91,7 @@ class myService{
 
 		let dns=new dnssd();
 		this.myService.forEach(function(e){
-			questions.push(dns.generateAnyQuery(instance,e));
+			questions.push(dns.generateQuery(instance,e,'ANY'));
 			RRs.push(dns.generateSRV(instance,e,ttl,detailService.get(e)));
 		});
 		
@@ -113,10 +118,27 @@ class myService{
 		return anyPacket;
 	}
 	
+	announcePacket(){
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.TTL;
+		let txt=this.TXT;
+
+	}
+
+	byebyePacket(){
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.TTL;
+		let txt=this.TXT;
+	
+	}
+
 	show(){
 		console.log(this.instance);
 		console.log(this.myService);
 	}
+
 }
 
 
