@@ -3,7 +3,7 @@ const txt=require('dns-txt');
 
 class myService{
 	
-	constructor(Instance,Service){
+	constructor(Instance,Service,SRV,TXT){
 		
 		let serviceArray = Service;
 		let service=new Set();
@@ -14,21 +14,33 @@ class myService{
 		this.instance=Instance;
 		this.myService=service;
 	}
-	anyTypePacket(){
-		let all=[];			
+
+
+	anyTypePacket()
+	{
+		function generateAnyQuery(Instance,Service){
+			let obj={};
+			obj={
+				name:Instance+"._"+Service+"._udp",
+				type:'ANY'
+			}
+			return obj; 
+		}
+		function generateAnyauth(SRV , TXT){
+			return 0;	
+		}
+
+		let instance=this.instance;
+		let query=[];
+		
+		this.myService.forEach(function(e){
+			query.push(generateAnyQuery(instance,e));
+		})
 		return 0;
 	}
-	generateAnyQuery(Instance,Service){
-		let obj={};
-		obj={
-			name:Instance+"._"+Serivce+"._udp",
-			type:'ANY'
-		}
-		return obj; 
-	}
-	generateAnyauth(SRV , TXT){
-		return 0;	
-	}
+	
+
+//	----------------------------
 	show(){
 		console.log(this.instance);
 		console.log(this.myService);
