@@ -14,7 +14,11 @@ class dnssd{
 			}
 			return obj; 
 	}
-
+	generatePTR(Instance,Service){
+		let obj={};
+	
+		return obj;
+	}
 	generateSRV(Instance,Service,ttl,port){
 
 		let obj={};
@@ -39,15 +43,25 @@ class dnssd{
 		obj.data=txt.encode(data);
 		return obj;
 			
-		}
+	}
+	generateA(Instance,Service,ttl,data){
+		let obj={};
+		
+		return obj;
 
+	}	
+	
+	generateAAAA(Instance,Service,ttl,data){
+		let obj={};
+		
+		return obj;
+	}
 }
 
 class myService{
 	
 	constructor(Instance,Service,TTL,TXT){
 		
-//		super();
 		let service=new Set();
 		for(let e of Service.keys()){
 			service.add(e);
@@ -120,7 +134,6 @@ function main(){
 	
 	let p1= new myService("Percomlab",service,10,txt);
 	p1.show();
-	mdns.query('brunhilde.local', 'A');
 	mdns.query(p1.anyTypePacket());
 	console.log(p1.anyTypePacket());
 
