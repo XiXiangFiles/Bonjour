@@ -1,9 +1,53 @@
 const mdns=require('multicast-dns')();
+const txt=require('dns-txt')();
+
+class dnssd{
+	
+	constructor(){
+
+	}
+	generateAnyQuery(Instance,Service){
+			let obj={};
+			obj={
+				name:Instance+"._"+Service+"._udp",
+				type:'ANY'
+			}
+			return obj; 
+	}
+
+	generateSRV(Instance,Service,ttl,port){
+
+		let obj={};
+		let data={};
+		obj.name= Instance+"._"+Service+"._udp";
+		obj.type='SRV';
+		obj.ttl=ttl;
+		data.port=port;
+		data.target=Instance+".local"
+		
+		obj.data=data;
+		return obj;
+
+	}
+	generateTXT(Instance,Service,ttl,data){
+		let obj={};
+	
+		const txt=require('dns-txt')();
+		obj.name= Instance+"._"+Service+"._udp";
+		obj.type="TXT";
+		obj.ttl=ttl;
+		obj.data=txt.encode(data);
+		return obj;
+			
+		}
+
+}
 
 class myService{
 	
 	constructor(Instance,Service,TTL,TXT){
 		
+//		super();
 		let service=new Set();
 		for(let e of Service.keys()){
 			service.add(e);
@@ -17,47 +61,8 @@ class myService{
 		this.TXT=TXT;
 	}
 
-	anyTypePacket()
-	{
-		function generateAnyQuery(Instance,Service){
-			let obj={};
-			obj={
-				name:Instance+"._"+Service+"._udp",
-				type:'ANY'
-			}
-			return obj; 
-		}
-
-		function generateSRV(Instance,Service,ttl,port){
-			let obj={};
-			let data={};
-			obj.name= Instance+"._"+Service+"._udp";
-			obj.type='SRV';
-			obj.ttl=ttl;
-
-			data.port=port;
-			data.target=Instance+".local"
-			
-			obj.data=data;
-
-			return obj;
-
-		}
-		function generateTXT(Instance,Service,ttl,data){
-			let obj={};
-			
-			const txt=require('dns-txt')();
-			obj.name= Instance+"._"+Service+"._udp";
-			obj.type="TXT";
-			obj.ttl=ttl;
-			obj.data=txt.encode(data);
-
-			return obj;
-			
-		}
-
-		
-
+	anyTypePacket(){
+	
 		let instance=this.instance;
 		let detailService=this.detailService;
 		let ttl=this.TTL;
@@ -65,9 +70,10 @@ class myService{
 		let questions=[];
 		let RRs=[];
 
+		let dns=new dnssd();
 		this.myService.forEach(function(e){
-			questions.push(generateAnyQuery(instance,e));
-			RRs.push(generateSRV(instance,e,ttl,detailService.get(e)));
+			questions.push(dns.generateAnyQuery(instance,e));
+			RRs.push(dns.generateSRV(instance,e,ttl,detailService.get(e)));
 		});
 		
 		for(let [key,val] of txt ){
@@ -81,15 +87,13 @@ class myService{
 					str +=',';
 			}
 			str+="}";
-			//console.log(str);
-			RRs.push(generateTXT(instance,key,ttl,JSON.parse(str)));
+			RRs.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
 		}	
 
 		let anyPacket={
 			questions:questions,
 			authorities:RRs
 		};
-		//mdns.query(p1.anyTypePacket());
 
 
 		return anyPacket;
@@ -116,12 +120,11 @@ function main(){
 	
 	let p1= new myService("Percomlab",service,10,txt);
 	p1.show();
-
+	mdns.query('brunhilde.local', 'A');
 	mdns.query(p1.anyTypePacket());
 	console.log(p1.anyTypePacket());
 
 	
 }
-
 main();
 
