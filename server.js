@@ -8,7 +8,7 @@ class dnssd{
 	generateANY(Instance,Service){
 			let obj={};
 			obj={
-				name:Instance+"._"+Service+"._udp",
+				name:Instance+"._"+Service+"._udp.local",
 				type:'ANY'
 			}
 			return obj; 
@@ -18,17 +18,17 @@ class dnssd{
 		let obj={};
 		if(discovery==0){
 
-			obj.name="._"+Service+"._udp";
+			obj.name="_"+Service+"._udp.local";
 			obj.type='PTR';
 			obj.ttl=ttl;
-			obj.data= Instance+"._"+Service+"._udp";	
+			obj.data= Instance+"._"+Service+"._udp.local";	
 		
 		}else if(discovery == 1){
 
 			obj.name="_services._dns-sd._udp.local";
 			obj.type='PTR',
 			obj.ttl=ttl;
-			obj.data="._"+Service+"._udp";
+			obj.data="_"+Service+"._udp.local";
 		
 		}
 
@@ -198,7 +198,7 @@ class myService{
 		
 		let instance=this.instance;
 		let detailService=this.detailService;
-		let ttl=this.ttl;
+		let ttl=this.TTL;
 		
 
 		let dns=new dnssd();
@@ -242,14 +242,19 @@ function main(){
 
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
+	
+//	console.log(p1.responsePTRofDNSSD());
+	
 	mdns.on('query',function(query){
+
 		query.questions.forEach(function(e){
 			if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
-				console.log(query);
+				console.log(p1.responsePTRofDNSSD() );
 				mdns.respond(p1.responsePTRofDNSSD());
 			}
 		});
-		//console.log( p1.responsePTRofDNSSD());
+		
+
 	});
 
 	console.log(p1.announcePacket());
