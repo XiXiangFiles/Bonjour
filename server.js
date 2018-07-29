@@ -1,5 +1,4 @@
 const mdns=require('multicast-dns')();
-const txt=require('dns-txt')();
 
 class dnssd{
 	
@@ -14,51 +13,95 @@ class dnssd{
 			}
 			return obj; 
 	}
-	generateResponse(){
+	generatePTR(Instance,Service,ttl,discovery=0){
+		
 		let obj={};
+		if(discovery==0){
 
-		return obj;
-	}
-	generatePTR(Instance,Service){
-		let obj={};
-	
+			obj.name="._"+Service+"._udp";
+			obj.type='PTR';
+			obj.ttl=ttl;
+			obj.data= Instance+"._"+Service+"._udp";	
+		
+		}else if(discovery == 1){
+
+			obj.name="_services._dns-sd._udp.local";
+			obj.type='PTR',
+			obj.ttl=ttl;
+			obj.data="._"+Service+"._udp";
+		
+		}
+
 		return obj;
 	}
 	generateSRV(Instance,Service,ttl,port){
 
 		let obj={};
 		let data={};
+		
 		obj.name= Instance+"._"+Service+"._udp";
 		obj.type='SRV';
 		obj.ttl=ttl;
 		data.port=port;
-		data.target=Instance+".local"
-		
+		data.target=Instance+".local";
 		obj.data=data;
+
 		return obj;
 
 	}
 	generateTXT(Instance,Service,ttl,data){
 		let obj={};
-	
 		const txt=require('dns-txt')();
+		
 		obj.name= Instance+"._"+Service+"._udp";
 		obj.type="TXT";
 		obj.ttl=ttl;
 		obj.data=txt.encode(data);
+		
 		return obj;
 			
 	}
-	generateA(Instance,Service,ttl,data){
+	generateA(Instance,ttl){
+	
+		const os = require('os');
 		let obj={};
+		let addrIPv4;
+		let networkInterface =os.networkInterfaces();
+		Object.keys(networkInterface).forEach(function(e){
+			if( networkInterface[e][0].address !='127.0.0.1' ){
+				addrIPv4=networkInterface[e][0].address;
+				return e;
+			}
+		});
+
+		obj.name=Instance+".local";
+		obj.type="A";
+		obj.ttl=ttl;
+		obj.data=addrIPv4;
 		
 		return obj;
 
 	}	
 	
-	generateAAAA(Instance,Service,ttl,data){
-		let obj={};
+	generateAAAA(Instance,ttl){
 		
+		const os = require('os');
+		let obj={};
+		let addrIPv6;
+		let networkInterface =os.networkInterfaces();
+		Object.keys(networkInterface).forEach(function(e){
+			if( networkInterface[e][0].address !='127.0.0.1' ){
+				addrIPv6=networkInterface[e][1].address;
+				//console.log(networkInterface);
+				return e;
+			}
+		});
+
+		obj.name=Instance+".local";
+		obj.type="AAAA";
+		obj.ttl=ttl;
+		obj.data=addrIPv6;
+
 		return obj;
 	}
 }
@@ -119,11 +162,28 @@ class myService{
 	}
 	
 	announcePacket(){
+
 		let instance=this.instance;
 		let detailService=this.detailService;
 		let ttl=this.TTL;
 		let txt=this.TXT;
+		
+		let dns=new dnssd();
+		//let dnssd=new dnssd();
 
+		let answers=[];
+
+		this.myService.forEach(function(e){
+			answers.push(dns.generatePTR(instance,e,ttl,0));
+			answers.push(dns.generatePTR(instance,e,ttl,1));
+		});
+		answers.push(dns.generateA(instance,ttl));
+		answers.push(dns.generateAAAA(instance,ttl));
+
+		let announce={
+			answers:answers
+		};
+		return announce;
 	}
 
 	byebyePacket(){
@@ -156,10 +216,11 @@ function main(){
 	
 	let p1= new myService("Percomlab",service,10,txt);
 	p1.show();
-	mdns.query(p1.anyTypePacket());
-	console.log(p1.anyTypePacket());
 
-	
+	mdns.query(p1.anyTypePacket());
+	mdns.respond(p1.announcePacket());
+
+	console.log(p1.announcePacket());
 }
 main();
 
