@@ -5,11 +5,11 @@ class dnssd{
 	constructor(){
 
 	}
-	generateQuery(Instance,Service,type){
+	generateANY(Instance,Service){
 			let obj={};
 			obj={
 				name:Instance+"._"+Service+"._udp",
-				type:type
+				type:'ANY'
 			}
 			return obj; 
 	}
@@ -134,7 +134,7 @@ class myService{
 
 		let dns=new dnssd();
 		this.myService.forEach(function(e){
-			questions.push(dns.generateQuery(instance,e,'ANY'));
+			questions.push(dns.generateANY(instance,e));
 			RRs.push(dns.generateSRV(instance,e,ttl,detailService.get(e)));
 		});
 		
@@ -166,17 +166,9 @@ class myService{
 		let instance=this.instance;
 		let detailService=this.detailService;
 		let ttl=this.TTL;
-		let txt=this.TXT;
-		
 		let dns=new dnssd();
-		//let dnssd=new dnssd();
-
 		let answers=[];
-
-		this.myService.forEach(function(e){
-			answers.push(dns.generatePTR(instance,e,ttl,0));
-			answers.push(dns.generatePTR(instance,e,ttl,1));
-		});
+		
 		answers.push(dns.generateA(instance,ttl));
 		answers.push(dns.generateAAAA(instance,ttl));
 
@@ -189,18 +181,50 @@ class myService{
 	byebyePacket(){
 		let instance=this.instance;
 		let detailService=this.detailService;
-		let ttl=this.TTL;
-		let txt=this.TXT;
+		let ttl=0;
+		
+
+		let dns=new dnssd();
+		let answers=[];
+
+		answers.push(dns.generateA(instance,ttl));
+		answers.push(dns.generateAAAA(instance,ttl));
+
+		let announce={
+			answers:answers
+		}
+	}
+	responsePTRofDNSSD(){
+		
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.ttl;
+		
+
+		let dns=new dnssd();
+		let answers=[];
+		this.myService.forEach(function(e){
+			answers.push(dns.generatePTR(instance,e,ttl,0));
+			answers.push(dns.generatePTR(instance,e,ttl,1));
+		});
+		let respond={
+			answers:answers
+		};
+
+		return respond;
 	
 	}
+	responseSRVTXT(){
+		
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.TTL;
+		let txt=this.TXT;
+		let questions=[];
+		let RRs=[];
 
-	show(){
-		console.log(this.instance);
-		console.log(this.myService);
 	}
-
 }
-
 
 
 function main(){
@@ -215,10 +239,18 @@ function main(){
 	txt.set("test2","y=200");
 	
 	let p1= new myService("Percomlab",service,10,txt);
-	p1.show();
 
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
+	mdns.on('query',function(query){
+		query.questions.forEach(function(e){
+			if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
+				console.log(query);
+				mdns.respond(p1.responsePTRofDNSSD());
+			}
+		});
+		//console.log( p1.responsePTRofDNSSD());
+	});
 
 	console.log(p1.announcePacket());
 }
