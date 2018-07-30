@@ -216,9 +216,7 @@ class myService{
 			answers.push(dns.generatePTR(instance,e,ttl,0));
 			answers.push(dns.generatePTR(instance,e,ttl,1));
 		});
-	//	answers.push(dns.generateA(instance,ttl));
-	//	answers.push(dns.generateAAAA(instance,ttl));
-
+		
 		let respond={
 			answers:answers
 		};
@@ -233,38 +231,40 @@ class myService{
 		let ttl=this.TTL;
 		let txt=this.TXT;
 		let answers=[];
+		let additionals=[];
 		let dns=new dnssd();
 
-		this.myService.forEach(function(e){
-			answers.push(dns.generatePTR(instance,e,ttl,2));
-		});
-		
-		for(let [key,val] of txt ){
-			
-			let str="{";
-			let splitval=val.split(",");
-			for(let i=0 ; i<splitval.length ; i++){
-				let splitKeyValue=splitval[i].split('=');
-				str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-				if(i != splitval.length-1)
-					str +=',';
+		if(instance==Instance){
+
+			answers.push(dns.generatePTR(instance,Service,ttl));
+
+			for(let [key,val] of txt ){
+				
+				let str="{";
+				let splitval=val.split(",");
+				for(let i=0 ; i<splitval.length ; i++){
+					let splitKeyValue=splitval[i].split('=');
+					str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
+					if(i != splitval.length-1)
+						str +=',';
+				}
+				str+="}";
+				answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+			}	
+			additionals.push(dns.generateA(instance,ttl));
+			additionals.push(dns.generateAAAA(instance,ttl));
+
+			let respond={
+				answers:answers,
+				additionals:additionals
 			}
-			str+="}";
-			answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
-		}	
 
-
-		answers.push(dns.generateA(instance,ttl));
-		answers.push(dns.generateAAAA(instance,ttl));
-
-		let respond={
-			answers:answers
-		}
-
-		return respond;
-		
-
+			return respond;
+		}else{
+			return false;
+		}		
 	}
+
 	responsePTRSRV(Instance, Service){
 	
 		let instance=this.instance;
@@ -291,23 +291,72 @@ class myService{
 							str +=',';
 					}
 					str+="}";
+					//answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+				}	
+			}	
+
+
+			answers.push(dns.generateA(instance,ttl));
+			answers.push(dns.generateAAAA(instance,ttl));
+	
+			let respond={
+				answers:answers
+			}
+
+			return respond;
+
+		}else{
+
+			return false;
+
+		}
+	}
+
+	responsePTRSRVTXT(Instance, Service){
+
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.TTL;
+		let txt=this.TXT;
+		let answers=[];
+		let dns=new dnssd();
+		if(instance==Instance){
+			
+			answers.push(dns.generatePTR(instance,Service,ttl));
+			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+		
+			for(let [key,val] of txt ){
+				
+				if(key==Service){
+					let str="{";
+					let splitval=val.split(",");
+					for(let i=0 ; i<splitval.length ; i++){
+						let splitKeyValue=splitval[i].split('=');
+						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
+						if(i != splitval.length-1)
+							str +=',';
+					}
+					str+="}";
 					answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
 				}	
 			}	
 
 
 			answers.push(dns.generateA(instance,ttl));
-		//	answers.push(dns.generateAAAA(instance,ttl));
+			answers.push(dns.generateAAAA(instance,ttl));
 	
 			let respond={
 				answers:answers
 			}
+
 			return respond;
+
 		}else{
+
 			return false;
+
 		}
 
-		
 	}
 }
 
@@ -328,40 +377,81 @@ function main(){
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
 	
-	//console.log(p1.responsePTRTXT());
-	
 	mdns.on('query',function(query){
 		let set = new Set();
 		let set1 =new Set(); 
 		let instance;
 		let service;
+
 		query.questions.forEach(function(e){
 			if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
-		//		console.log(p1.responsePTRofDNSSD() );
+
 				mdns.respond(p1.responsePTRofDNSSD());
+
 			}
+
 			set.add(e.type);
 			set1.add(e);
+
 		});
+
 		if(set.has('PTR') && set.has('TXT')){
-			
-			mdns.respond(p1.responsePTRTXT());	
 		
-		}
-		if(set.has('PTR') && set.has('SRV')){
 			let str;
+
 			set1.forEach(function(element){
+
 				let str=element.name.split('.');
 				instance=str[0];
 				service=str[1];
 				service=str[1].split('_');
 				service=service[1];
+
+			});
+
+			if(p1.responsePTRTXT(instance,service)!= false ){
+				mdns.respond(p1.responsePTRTXT(instance,service));
+			}	
+		
+		}
+
+		if(set.has('PTR') && set.has('SRV')){
+
+			let str;
+			set1.forEach(function(element){
+
+				let str=element.name.split('.');
+				instance=str[0];
+				service=str[1];
+				service=str[1].split('_');
+				service=service[1];
+
 			});
 			if(p1.responsePTRSRV(instance,service)!= false ){
+				
 				mdns.respond(p1.responsePTRSRV(instance,service));
-				console.log(p1.responsePTRSRV(instance,service));
+
 			}
 		}
+		if( set.has('PTR') && set.has('SRV') && set.has('TXT') ){
+
+			let str;
+			set1.forEach(function(element){
+
+				let str=element.name.split('.');
+				instance=str[0];
+				service=str[1];
+				service=str[1].split('_');
+				service=service[1];
+
+			});
+			if(p1.responsePTRSRVTXT(instance,service)!= false ){
+				
+				mdns.respond(p1.responsePTRSRVTXT(instance,service));
+
+			}
+		}
+		console.log(set);
 
 	});
 
