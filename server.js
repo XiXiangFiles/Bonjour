@@ -48,6 +48,7 @@ class dnssd{
 		obj.name= Instance+"._"+Service+"._udp.local";
 		obj.type='SRV';
 		obj.ttl=ttl;
+		obj.flush=true;
 		data.port=port;
 		data.target=Instance+".local";
 		obj.data=data;
@@ -59,7 +60,7 @@ class dnssd{
 		let obj={};
 		const txt=require('dns-txt')();
 		
-		obj.name= Instance+"._"+Service+"._udp";
+		obj.name= Instance+"._"+Service+"._udp.local";
 		obj.type="TXT";
 		obj.ttl=ttl;
 		obj.data=txt.encode(data);
@@ -83,6 +84,7 @@ class dnssd{
 		obj.name=Instance+".local";
 		obj.type="A";
 		obj.ttl=ttl;
+		obj.flush=true;
 		obj.data=addrIPv4;
 		
 		return obj;
@@ -106,6 +108,7 @@ class dnssd{
 		obj.name=Instance+".local";
 		obj.type="AAAA";
 		obj.ttl=ttl;
+		obj.flush=true;
 		obj.data=addrIPv6;
 
 		return obj;
@@ -272,12 +275,12 @@ class myService{
 		let dns=new dnssd();
 
 		if(instance==Instance){
-		//	this.myService.forEach(function(e){
-			answers.push(dns.generatePTR(instance,Service,ttl,2));
+			
+			answers.push(dns.generatePTR(instance,Service,ttl));
 			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
-		//	});
 		
 			for(let [key,val] of txt ){
+				
 				if(key==Service){
 					let str="{";
 					let splitval=val.split(",");
@@ -294,7 +297,7 @@ class myService{
 
 
 			answers.push(dns.generateA(instance,ttl));
-			answers.push(dns.generateAAAA(instance,ttl));
+		//	answers.push(dns.generateAAAA(instance,ttl));
 	
 			let respond={
 				answers:answers
@@ -351,10 +354,12 @@ function main(){
 				let str=element.name.split('.');
 				instance=str[0];
 				service=str[1];
-				console.log(p1.responsePTRSRV(instance,service));
+				service=str[1].split('_');
+				service=service[1];
 			});
 			if(p1.responsePTRSRV(instance,service)!= false ){
 				mdns.respond(p1.responsePTRSRV(instance,service));
+				console.log(p1.responsePTRSRV(instance,service));
 			}
 		}
 
