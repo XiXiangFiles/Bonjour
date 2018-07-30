@@ -45,7 +45,7 @@ class dnssd{
 		let obj={};
 		let data={};
 		
-		obj.name= Instance+"._"+Service+"._udp";
+		obj.name= Instance+"._"+Service+"._udp.local";
 		obj.type='SRV';
 		obj.ttl=ttl;
 		data.port=port;
@@ -223,7 +223,7 @@ class myService{
 		return respond;
 	
 	}
-	responsePTRTXT(){
+	responsePTRTXT(Instance,Service){
 		
 		let instance=this.instance;
 		let detailService=this.detailService;
@@ -262,7 +262,7 @@ class myService{
 		
 
 	}
-	responsePTRSRV(){
+	responsePTRSRV(Instance, Service){
 	
 		let instance=this.instance;
 		let detailService=this.detailService;
@@ -271,34 +271,40 @@ class myService{
 		let answers=[];
 		let dns=new dnssd();
 
-		this.myService.forEach(function(e){
-			answers.push(dns.generatePTR(instance,e,ttl,2));
-			answers.push(dns.generateSRV(instance,e,ttl,detailService.get(e)));
-		});
+		if(instance==Instance){
+		//	this.myService.forEach(function(e){
+			answers.push(dns.generatePTR(instance,Service,ttl,2));
+			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+		//	});
 		
-		for(let [key,val] of txt ){
-			
-			let str="{";
-			let splitval=val.split(",");
-			for(let i=0 ; i<splitval.length ; i++){
-				let splitKeyValue=splitval[i].split('=');
-				str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-				if(i != splitval.length-1)
-					str +=',';
+			for(let [key,val] of txt ){
+				if(key==Service){
+					let str="{";
+					let splitval=val.split(",");
+					for(let i=0 ; i<splitval.length ; i++){
+						let splitKeyValue=splitval[i].split('=');
+						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
+						if(i != splitval.length-1)
+							str +=',';
+					}
+					str+="}";
+					answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+				}	
+			}	
+
+
+			answers.push(dns.generateA(instance,ttl));
+			answers.push(dns.generateAAAA(instance,ttl));
+	
+			let respond={
+				answers:answers
 			}
-			str+="}";
-			answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
-		}	
-
-
-		answers.push(dns.generateA(instance,ttl));
-		answers.push(dns.generateAAAA(instance,ttl));
-
-		let respond={
-			answers:answers
+			return respond;
+		}else{
+			return false;
 		}
 
-		return respond;
+		
 	}
 }
 
@@ -323,13 +329,16 @@ function main(){
 	
 	mdns.on('query',function(query){
 		let set = new Set();
-
+		let set1 =new Set(); 
+		let instance;
+		let service;
 		query.questions.forEach(function(e){
 			if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
 		//		console.log(p1.responsePTRofDNSSD() );
 				mdns.respond(p1.responsePTRofDNSSD());
 			}
 			set.add(e.type);
+			set1.add(e);
 		});
 		if(set.has('PTR') && set.has('TXT')){
 			
@@ -337,10 +346,17 @@ function main(){
 		
 		}
 		if(set.has('PTR') && set.has('SRV')){
-
-			mdns.respond(p1.responsePTRSRV());
+			let str;
+			set1.forEach(function(element){
+				let str=element.name.split('.');
+				instance=str[0];
+				service=str[1];
+				console.log(p1.responsePTRSRV(instance,service));
+			});
+			if(p1.responsePTRSRV(instance,service)!= false ){
+				mdns.respond(p1.responsePTRSRV(instance,service));
+			}
 		}
-		//console.log(set);
 
 	});
 
