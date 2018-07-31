@@ -64,8 +64,7 @@ class dnssd{
 		obj.type="TXT";
 		obj.ttl=ttl;
 		obj.flush=true;
-		obj.data=txt.encode(data);
-		
+		obj.data=txt.encode(JSON.parse(data));
 		return obj;
 			
 	}
@@ -159,7 +158,8 @@ class myService{
 					str +=',';
 			}
 			str+="}";
-			RRs.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+			//console.log("~~~~~~~"+str);
+			RRs.push(dns.generateTXT(instance,key,ttl,str));
 		}	
 
 		let anyPacket={
@@ -193,7 +193,6 @@ class myService{
 		let detailService=this.detailService;
 		let ttl=0;
 		
-
 		let dns=new dnssd();
 		let answers=[];
 
@@ -252,7 +251,7 @@ class myService{
 							str +=',';
 					}
 					str+="}";
-					additionals.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+					additionals.push(dns.generateTXT(instance,key,ttl,str));
 				}	
 			}	
 
@@ -300,7 +299,7 @@ class myService{
 						str +=',';
 				}
 				str+="}";
-				answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+				answers.push(dns.generateTXT(instance,key,ttl,str));
 			}	
 			additionals.push(dns.generateA(instance,ttl));
 			additionals.push(dns.generateAAAA(instance,ttl));
@@ -389,7 +388,7 @@ class myService{
 							str +=',';
 					}
 					str+="}";
-					answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+					answers.push(dns.generateTXT(instance,key,ttl,str));
 				}	
 			}	
 
@@ -412,6 +411,7 @@ class myService{
 	}
 }
 
+
 function serverStart(Instance,Service,txt,ttl){
 	let checkService=Service;
 
@@ -421,7 +421,7 @@ function serverStart(Instance,Service,txt,ttl){
 	mdns.respond(p1.announcePacket());
 
 	mdns.on('response',function(res){
-		console.log(res);
+		//console.log(res);
 	});
 	
 	mdns.on('query',function(query){
@@ -455,7 +455,6 @@ function serverStart(Instance,Service,txt,ttl){
 		if(getServicename.has('PTR') && getServicename.size == 1 && checkService.has(PTRservice ) ){
 
 			if(p1.responsePTR( Instance ,PTRservice ) != false ){
-				//console.log(p1.responsePTR(Instance , PTRservice));
 				mdns.respond(p1.responsePTR(Instance,PTRservice ));
 			}
 
@@ -519,7 +518,13 @@ function serverStart(Instance,Service,txt,ttl){
 		}
 
 	});
+	/*
+	setInterval(function(){
+		mdns.respond(p1.announcePacket());
+		mdns.respond(p1.responsePTRofDNSSD());
 
+	},ttl*1000);
+	*/
 }
 
 function main(){
@@ -532,10 +537,10 @@ function main(){
 	Service.set("test2",10002);
 	
 
-	txt.set("test1","x=100,y=200");
+	txt.set("test1","path=140.119.163.195 , test=wongwong");
 	txt.set("test2","y=200");
 	
-	serverStart(Instance,Service,txt,100);
+	serverStart(Instance,Service,txt,10);
 
 }
 main();
