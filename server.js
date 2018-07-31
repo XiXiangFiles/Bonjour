@@ -63,6 +63,7 @@ class dnssd{
 		obj.name= Instance+"._"+Service+"._udp.local";
 		obj.type="TXT";
 		obj.ttl=ttl;
+		obj.flush=true;
 		obj.data=txt.encode(data);
 		
 		return obj;
@@ -224,6 +225,56 @@ class myService{
 		return respond;
 	
 	}
+	responsePTR(Instance,Service){
+		
+		let instance=this.instance;
+		let detailService=this.detailService;
+		let ttl=this.TTL;
+		let txt=this.TXT;
+		let additionals=[];
+		let answers=[];
+		let dns=new dnssd();
+		
+		if(instance==Instance){
+			
+			answers.push(dns.generatePTR(instance,Service,ttl));
+			additionals.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+		
+			for(let [key,val] of txt ){
+				
+				if(key==Service){
+					let str="{";
+					let splitval=val.split(",");
+					for(let i=0 ; i<splitval.length ; i++){
+						let splitKeyValue=splitval[i].split('=');
+						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
+						if(i != splitval.length-1)
+							str +=',';
+					}
+					str+="}";
+					additionals.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
+				}	
+			}	
+
+
+			additionals.push(dns.generateA(instance,ttl));
+			additionals.push(dns.generateAAAA(instance,ttl));
+	
+			let respond={
+				answers:answers,
+				additionals:additionals
+			}
+
+			return respond;
+
+		}else{
+
+			return false;
+
+		}
+
+
+	}
 	responsePTRTXT(Instance,Service){
 		
 		let instance=this.instance;
@@ -320,6 +371,7 @@ class myService{
 		let txt=this.TXT;
 		let answers=[];
 		let dns=new dnssd();
+
 		if(instance==Instance){
 			
 			answers.push(dns.generatePTR(instance,Service,ttl));
@@ -360,28 +412,24 @@ class myService{
 	}
 }
 
+function serverStart(Instance,Service,txt,ttl){
+	let checkService=Service;
 
-function main(){
-	
-	let service= new Map();
-	let txt=new Map();
-
-	service.set("test1",10001);
-	service.set("test2",10002);
-
-	txt.set("test1","x=100,y=200");
-	txt.set("test2","y=200");
-	
-	let p1= new myService("Percomlab",service,10,txt);
+	let p1= new myService(Instance,Service,ttl,txt);
 
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
+
+	mdns.on('response',function(res){
+		console.log(res);
+	});
 	
 	mdns.on('query',function(query){
-		let set = new Set();
-		let set1 =new Set(); 
+		let getServicename = new Set();
+		let saveQery =new Set(); 
 		let instance;
 		let service;
+		let PTRservice;
 
 		query.questions.forEach(function(e){
 			if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
@@ -390,16 +438,34 @@ function main(){
 
 			}
 
-			set.add(e.type);
-			set1.add(e);
+			getServicename.add(e.type);
+			saveQery.add(e);
 
 		});
 
-		if(set.has('PTR') && set.has('TXT')){
+		
+		try{
+			saveQery.forEach(function(element){
+				PTRservice=element.name.split('_');
+				PTRservice=PTRservice[1].split('.');
+				PTRservice=PTRservice[0];
+			});
+		}catch(e){}
+
+		if(getServicename.has('PTR') && getServicename.size == 1 && checkService.has(PTRservice ) ){
+
+			if(p1.responsePTR( Instance ,PTRservice ) != false ){
+				//console.log(p1.responsePTR(Instance , PTRservice));
+				mdns.respond(p1.responsePTR(Instance,PTRservice ));
+			}
+
+		}
+
+		if(getServicename.has('PTR') && getServicename.has('TXT')){
 		
 			let str;
 
-			set1.forEach(function(element){
+			saveQery.forEach(function(element){
 
 				let str=element.name.split('.');
 				instance=str[0];
@@ -415,10 +481,10 @@ function main(){
 		
 		}
 
-		if(set.has('PTR') && set.has('SRV')){
+		if(getServicename.has('PTR') && getServicename.has('SRV')){
 
 			let str;
-			set1.forEach(function(element){
+			saveQery.forEach(function(element){
 
 				let str=element.name.split('.');
 				instance=str[0];
@@ -433,10 +499,10 @@ function main(){
 
 			}
 		}
-		if( set.has('PTR') && set.has('SRV') && set.has('TXT') ){
+		if( getServicename.has('PTR') && getServicename.has('SRV') && getServicename.has('TXT') ){
 
 			let str;
-			set1.forEach(function(element){
+			saveQery.forEach(function(element){
 
 				let str=element.name.split('.');
 				instance=str[0];
@@ -451,9 +517,25 @@ function main(){
 
 			}
 		}
-		console.log(set);
 
 	});
+
+}
+
+function main(){
+	
+	let Service= new Map();
+	let txt=new Map();
+
+	const Instance="Percomlab";
+	Service.set("test1",10001);
+	Service.set("test2",10002);
+	
+
+	txt.set("test1","x=100,y=200");
+	txt.set("test2","y=200");
+	
+	serverStart(Instance,Service,txt,100);
 
 }
 main();
