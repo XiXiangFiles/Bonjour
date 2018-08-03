@@ -58,13 +58,23 @@ class dnssd{
 	}
 	generateTXT(Instance,Service,ttl,data){
 		let obj={};
-		const txt=require('dns-txt')();
+		let arr=[];
 		
 		obj.name= Instance+"._"+Service+"._udp.local";
 		obj.type="TXT";
 		obj.ttl=ttl;
 		obj.flush=true;
-		obj.data=txt.encode(JSON.parse(data));
+
+		if(data.includes(';')){
+			let str=data.split(';');
+			str.forEach(function(e){
+				arr.push(Buffer.from(e,'ascii'));
+			});
+			obj.data=arr;
+		}else{
+			obj.data=Buffer.from(data,'ascii');	
+		}
+
 		return obj;
 			
 	}
@@ -100,7 +110,6 @@ class dnssd{
 		Object.keys(networkInterface).forEach(function(e){
 			if( networkInterface[e][0].address !='127.0.0.1' ){
 				addrIPv6=networkInterface[e][1].address;
-				//console.log(networkInterface);
 				return e;
 			}
 		});
@@ -148,18 +157,7 @@ class myService{
 		});
 		
 		for(let [key,val] of txt ){
-			
-			let str="{";
-			let splitval=val.split(",");
-			for(let i=0 ; i<splitval.length ; i++){
-				let splitKeyValue=splitval[i].split('=');
-				str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-				if(i != splitval.length-1)
-					str +=',';
-			}
-			str+="}";
-			//console.log("~~~~~~~"+str);
-			RRs.push(dns.generateTXT(instance,key,ttl,str));
+			RRs.push(dns.generateTXT(instance,key,ttl,val));
 		}	
 
 		let anyPacket={
@@ -242,16 +240,8 @@ class myService{
 			for(let [key,val] of txt ){
 				
 				if(key==Service){
-					let str="{";
-					let splitval=val.split(",");
-					for(let i=0 ; i<splitval.length ; i++){
-						let splitKeyValue=splitval[i].split('=');
-						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-						if(i != splitval.length-1)
-							str +=',';
-					}
-					str+="}";
-					additionals.push(dns.generateTXT(instance,key,ttl,str));
+				
+					additionals.push(dns.generateTXT(instance,key,ttl,val));
 				}	
 			}	
 
@@ -289,17 +279,7 @@ class myService{
 			answers.push(dns.generatePTR(instance,Service,ttl));
 
 			for(let [key,val] of txt ){
-				
-				let str="{";
-				let splitval=val.split(",");
-				for(let i=0 ; i<splitval.length ; i++){
-					let splitKeyValue=splitval[i].split('=');
-					str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-					if(i != splitval.length-1)
-						str +=',';
-				}
-				str+="}";
-				answers.push(dns.generateTXT(instance,key,ttl,str));
+				answers.push(dns.generateTXT(instance,key,ttl,val));
 			}	
 			additionals.push(dns.generateA(instance,ttl));
 			additionals.push(dns.generateAAAA(instance,ttl));
@@ -329,23 +309,6 @@ class myService{
 			answers.push(dns.generatePTR(instance,Service,ttl));
 			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
 		
-			for(let [key,val] of txt ){
-				
-				if(key==Service){
-					let str="{";
-					let splitval=val.split(",");
-					for(let i=0 ; i<splitval.length ; i++){
-						let splitKeyValue=splitval[i].split('=');
-						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-						if(i != splitval.length-1)
-							str +=',';
-					}
-					str+="}";
-					//answers.push(dns.generateTXT(instance,key,ttl,JSON.parse(str)));
-				}	
-			}	
-
-
 			answers.push(dns.generateA(instance,ttl));
 			answers.push(dns.generateAAAA(instance,ttl));
 	
@@ -379,16 +342,7 @@ class myService{
 			for(let [key,val] of txt ){
 				
 				if(key==Service){
-					let str="{";
-					let splitval=val.split(",");
-					for(let i=0 ; i<splitval.length ; i++){
-						let splitKeyValue=splitval[i].split('=');
-						str += '"'+splitKeyValue[0]+'"'+":"+'"'+splitKeyValue[1]+'"';
-						if(i != splitval.length-1)
-							str +=',';
-					}
-					str+="}";
-					answers.push(dns.generateTXT(instance,key,ttl,str));
+					answers.push(dns.generateTXT(instance,key,ttl,val));
 				}	
 			}	
 
@@ -420,9 +374,6 @@ function serverStart(Instance,Service,txt,ttl){
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
 
-	mdns.on('response',function(res){
-		//console.log(res);
-	});
 	
 	mdns.on('query',function(query){
 		let getServicename = new Set();
@@ -518,13 +469,13 @@ function serverStart(Instance,Service,txt,ttl){
 		}
 
 	});
-	/*
+	
 	setInterval(function(){
 		mdns.respond(p1.announcePacket());
 		mdns.respond(p1.responsePTRofDNSSD());
 
 	},ttl*1000);
-	*/
+	
 }
 
 function main(){
@@ -537,10 +488,17 @@ function main(){
 	Service.set("test2",10002);
 	
 
-	txt.set("test1","path=140.119.163.195 , test=wongwong");
+	txt.set("test1","path=140.119.163.195;test=wongwong");
 	txt.set("test2","y=200");
 	
-	serverStart(Instance,Service,txt,10);
+	serverStart(Instance,Service,txt,60);
+	mdns.on('response',function(res){
+		res.answers.forEach(function(e){
+			if(e.type=='TXT'){
+				console.log(e.data);
+			}
+		});
+	})
 
 }
 main();
