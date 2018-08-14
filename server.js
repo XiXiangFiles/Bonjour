@@ -177,6 +177,11 @@ class myService{
 		let dns=new dnssd();
 		let answers=[];
 		
+		this.myService.forEach(function(e){
+			answers.push(dns.generatePTR(instance,e,ttl,0));
+			answers.push(dns.generatePTR(instance,e,ttl,1));
+		});
+
 		answers.push(dns.generateA(instance,ttl));
 		answers.push(dns.generateAAAA(instance,ttl));
 
