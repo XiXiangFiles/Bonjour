@@ -2,9 +2,6 @@ const mdns=require('multicast-dns')();
 
 class dnssd{
 	
-	constructor(){
-
-	}
 	generateANY(Instance,Service){
 			let obj={};
 			obj={
@@ -40,7 +37,7 @@ class dnssd{
 
 		return obj;
 	}
-	generateSRV(Instance,Service,ttl,port){
+	generateSRV(Instance,Service,ttl,port,domain){
 
 		let obj={};
 		let data={};
@@ -50,7 +47,7 @@ class dnssd{
 		obj.ttl=ttl;
 		obj.flush=true;
 		data.port=port;
-		data.target=Instance+".local";
+		data.target=domain+".local";
 		obj.data=data;
 
 		return obj;
@@ -78,7 +75,7 @@ class dnssd{
 		return obj;
 			
 	}
-	generateA(Instance,ttl){
+	generateA(domain,ttl){
 	
 		const os = require('os');
 		let obj={};
@@ -91,7 +88,7 @@ class dnssd{
 			}
 		});
 
-		obj.name=Instance+".local";
+		obj.name=domain+".local";
 		obj.type="A";
 		obj.ttl=ttl;
 		obj.flush=true;
@@ -101,7 +98,7 @@ class dnssd{
 
 	}	
 	
-	generateAAAA(Instance,ttl){
+	generateAAAA(domain,ttl){
 		
 		const os = require('os');
 		let obj={};
@@ -114,7 +111,7 @@ class dnssd{
 			}
 		});
 
-		obj.name=Instance+".local";
+		obj.name=domain+".local";
 		obj.type="AAAA";
 		obj.ttl=ttl;
 		obj.flush=true;
@@ -126,7 +123,7 @@ class dnssd{
 
 class myService{
 	
-	constructor(Instance,Service,TTL,TXT){
+	constructor(Instance,Service,TTL,TXT,Domain){
 		
 		let service=new Set();
 		for(let e of Service.keys()){
@@ -139,6 +136,7 @@ class myService{
 		this.myService=service;
 		this.TTL=TTL;
 		this.TXT=TXT;
+		this.Domain=Domain;
 	}
 
 	anyTypePacket(){
@@ -148,12 +146,13 @@ class myService{
 		let ttl=this.TTL;
 		let txt=this.TXT;
 		let questions=[];
+		let Domain=this.Domain;
 		let RRs=[];
 
 		let dns=new dnssd();
 		this.myService.forEach(function(e){
-			questions.push(dns.generateANY(instance,e));
-			RRs.push(dns.generateSRV(instance,e,ttl,detailService.get(e)));
+			questions.push(dns.generateANY(Domain,e));
+			RRs.push(dns.generateSRV(instance,e,ttl,detailService.get(e),Domain));
 		});
 		
 		for(let [key,val] of txt ){
@@ -174,16 +173,17 @@ class myService{
 		let instance=this.instance;
 		let detailService=this.detailService;
 		let ttl=this.TTL;
+		let Domain=this.Domain;
 		let dns=new dnssd();
 		let answers=[];
+		
 		
 		this.myService.forEach(function(e){
 			answers.push(dns.generatePTR(instance,e,ttl,0));
 			answers.push(dns.generatePTR(instance,e,ttl,1));
 		});
-
-		answers.push(dns.generateA(instance,ttl));
-		answers.push(dns.generateAAAA(instance,ttl));
+		answers.push(dns.generateA(Domain,ttl));
+		answers.push(dns.generateAAAA(Domain,ttl));
 
 		let announce={
 			answers:answers
@@ -195,12 +195,12 @@ class myService{
 		let instance=this.instance;
 		let detailService=this.detailService;
 		let ttl=0;
-		
+		let Domain=this.Domain;
 		let dns=new dnssd();
 		let answers=[];
 
-		answers.push(dns.generateA(instance,ttl));
-		answers.push(dns.generateAAAA(instance,ttl));
+		answers.push(dns.generateA(Domain,ttl));
+		answers.push(dns.generateAAAA(Domain,ttl));
 
 		let announce={
 			answers:answers
@@ -233,6 +233,7 @@ class myService{
 		let detailService=this.detailService;
 		let ttl=this.TTL;
 		let txt=this.TXT;
+		let Domain=this.Domain;
 		let additionals=[];
 		let answers=[];
 		let dns=new dnssd();
@@ -240,7 +241,7 @@ class myService{
 		if(instance==Instance){
 			
 			answers.push(dns.generatePTR(instance,Service,ttl));
-			additionals.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+			additionals.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service),Domain));
 		
 			for(let [key,val] of txt ){
 				
@@ -251,8 +252,8 @@ class myService{
 			}	
 
 
-			additionals.push(dns.generateA(instance,ttl));
-			additionals.push(dns.generateAAAA(instance,ttl));
+			additionals.push(dns.generateA(Domain,ttl));
+			additionals.push(dns.generateAAAA(Domain,ttl));
 	
 			let respond={
 				answers:answers,
@@ -275,6 +276,7 @@ class myService{
 		let detailService=this.detailService;
 		let ttl=this.TTL;
 		let txt=this.TXT;
+		let Domain=this.Domain;
 		let answers=[];
 		let additionals=[];
 		let dns=new dnssd();
@@ -286,8 +288,8 @@ class myService{
 			for(let [key,val] of txt ){
 				answers.push(dns.generateTXT(instance,key,ttl,val));
 			}	
-			additionals.push(dns.generateA(instance,ttl));
-			additionals.push(dns.generateAAAA(instance,ttl));
+			additionals.push(dns.generateA(Domain,ttl));
+			additionals.push(dns.generateAAAA(Domain,ttl));
 
 			let respond={
 				answers:answers,
@@ -306,16 +308,17 @@ class myService{
 		let detailService=this.detailService;
 		let ttl=this.TTL;
 		let txt=this.TXT;
+		let Domain=this.Domain;
 		let answers=[];
 		let dns=new dnssd();
 
 		if(instance==Instance){
 			
 			answers.push(dns.generatePTR(instance,Service,ttl));
-			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service),Domain));
 		
-			answers.push(dns.generateA(instance,ttl));
-			answers.push(dns.generateAAAA(instance,ttl));
+			answers.push(dns.generateA(Domain,ttl));
+			answers.push(dns.generateAAAA(Domain,ttl));
 	
 			let respond={
 				answers:answers
@@ -336,13 +339,14 @@ class myService{
 		let detailService=this.detailService;
 		let ttl=this.TTL;
 		let txt=this.TXT;
+		let Domain=this.Domain;
 		let answers=[];
 		let dns=new dnssd();
 
 		if(instance==Instance){
 			
 			answers.push(dns.generatePTR(instance,Service,ttl));
-			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service)));
+			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service),Domain));
 		
 			for(let [key,val] of txt ){
 				
@@ -352,8 +356,8 @@ class myService{
 			}	
 
 
-			answers.push(dns.generateA(instance,ttl));
-			answers.push(dns.generateAAAA(instance,ttl));
+			answers.push(dns.generateA(Domain,ttl));
+			answers.push(dns.generateAAAA(Domain,ttl));
 	
 			let respond={
 				answers:answers
@@ -371,10 +375,10 @@ class myService{
 }
 
 
-function serverStart(Instance,Service,txt,ttl){
+function serverStart(Instance,Service,txt,domain,ttl){
 	let checkService=Service;
 
-	let p1= new myService(Instance,Service,ttl,txt);
+	let p1= new myService(Instance,Service,ttl,txt,domain);
 
 	mdns.query(p1.anyTypePacket());
 	mdns.respond(p1.announcePacket());
@@ -487,16 +491,18 @@ function main(){
 	
 	let Service= new Map();
 	let txt=new Map();
+	let domain="Testdoamin";
 
 	const Instance="Percomlab";
 	Service.set("test1",10001);
 	Service.set("test2",10002);
 	
 
+
 	txt.set("test1","path=140.119.163.195;test=wongwong");
 	txt.set("test2","y=200");
 	
-	serverStart(Instance,Service,txt,60);
+	serverStart(Instance,Service,txt,domain,10);
 	mdns.on('response',function(res){
 		res.answers.forEach(function(e){
 			if(e.type=='TXT'){
