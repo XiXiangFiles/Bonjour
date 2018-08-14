@@ -1,4 +1,5 @@
 const mdns=require('multicast-dns')();
+const spawn = require('threads').spawn;
 
 function queryObj(name,type){
 	obj={};
@@ -7,17 +8,17 @@ function queryObj(name,type){
 	return obj;
 }
 function query(name,type){
-	questions=[];
-	if(typeof(name)=="string" && typeof(type)=="string"){
+	let questions=[];
+	if(typeof(name)==="string" && typeof(type)==="string"){
 
 		questions.push(queryObj(name,type));
 
 	}
-	if(typeof(name)=="object" && typeof(type)=="object"){
+	if(typeof(name)==="object" && typeof(type)==="object"){
 		for(let i=0 ; i< name.length ; i++)
 			questions.push(queryObj(name[i],type[i]));
 	}
-	if(questions!=undefined){
+	if(questions.length >0){
 		mdns.query({
 			questions:questions
 		});
@@ -57,56 +58,56 @@ function parseSRVTXT(packet){
 			obj.ipv6=e.data;
 		
 	});
+
 	//console.log(obj);
-	return obj;
+	return JSON.stringify(obj);
 }
 
 function main(){
 	let allService=new Set();
-	let serviceTTL=new Map();
 	let mdnsService=new Set();
+	let check=new Set();
+	
 	mdns.on('response',function(res){
 		res.answers.forEach(function(e){
 			if(e.type=='PTR' && e.name=="_services._dns-sd._udp.local"){
 
 				allService.add(e.data);	
-			
+				if(allService.has(e.data)){
+					query([e.data,e.data,e.data],['PTR','SRV','TXT']);
+				}
 			}else{
-				mdnsService.add(parseSRVTXT(res));			
+				let data=parseSRVTXT(res);
+				mdnsService.add(data);
+				let dnssd=JSON.parse(data);
+				
+				if(mdnsService.has(data)&& dnssd.ttl !==undefined && check.has(data) === false){
+					thread.send(dnssd);
+					check.add(data);
+					console.log(check.has(data));
+				}
 			}
 		});
 	});
 	query("_services._dns-sd._udp.local","PTR");
-
-	setTimeout(function(){
-		allService.forEach(function(service){
-			query([service,service,service],['PTR','SRV','TXT']);
-		});
-	},1000);
+	const thread = spawn(function(input, done){
 	
-	setInterval(function(){
-		let update=new Set();
-		
-		mdnsService.forEach(function(e){
-			
-			if(e.ttl != undefined ){
-				
-				console.log(e.instance+"\t"+e.ttl);
-				let obj=e;
-				obj.ttl--;
-				if(obj.obj > 0){
-					update.add(obj);			
-				}else{
-					query([obj.service+"local",obj.service+"local",obj.service+"local"],['PTR','SRV','TXT']);
-				}	
+		try{
+			let i=0;
+			console.log(input);
+			setInterval(function(){
+				console.log(i++);	
+			},1000);
+			if(i>input.ttl){
+				query([input.service, input.service, input.service ],['PTR','SRV','TXT']);
+				check.delete(JSON.stringify(input));
 			}
-
-		});
-		mdnsService.clear();
-		mdnsService=update;
-
-	},1000);
-	
+			
+			
+		}catch(e){
+		
+		}
+	});	
 }
 
 main();
