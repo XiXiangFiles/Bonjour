@@ -59,7 +59,6 @@ function parseSRVTXT(packet){
 		
 	});
 
-	//console.log(obj);
 	return JSON.stringify(obj);
 }
 
@@ -82,32 +81,34 @@ function main(){
 				let dnssd=JSON.parse(data);
 				
 				if(mdnsService.has(data)&& dnssd.ttl !==undefined && check.has(data) === false){
-					thread.send(dnssd);
+					
+					
+					const thread = spawn(function(input, done){
+
+						try{
+							let i=0;
+							setTimeout(function(){
+								done(input);
+							},input.ttl);
+						}catch(e){
+							console.log("child process error: "+e);	
+						}
+					});
+					
+					thread.send(dnssd).on('message',function(res){
+
+						check.delete(JSON.stringify(res));
+						query([res.service+"local", res.service+"local",res.service+"local"],['PTR','SRV','TXT']);	
+						thread.kill();
+
+					});
 					check.add(data);
-					console.log(check.has(data));
 				}
 			}
 		});
 	});
 	query("_services._dns-sd._udp.local","PTR");
-	const thread = spawn(function(input, done){
-	
-		try{
-			let i=0;
-			console.log(input);
-			setInterval(function(){
-				console.log(i++);	
-			},1000);
-			if(i>input.ttl){
-				query([input.service, input.service, input.service ],['PTR','SRV','TXT']);
-				check.delete(JSON.stringify(input));
-			}
-			
-			
-		}catch(e){
 		
-		}
-	});	
 }
 
 main();
