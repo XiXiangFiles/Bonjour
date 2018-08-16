@@ -386,7 +386,7 @@ function serverStart(Instance,Service,txt,domain,ttl){
 	
 	mdns.on('query',function(query){
 		let getServicename = new Set();
-		let saveQery =new Set(); 
+		let saveQuery =new Set(); 
 		let instance;
 		let service;
 		let PTRservice;
@@ -399,13 +399,13 @@ function serverStart(Instance,Service,txt,domain,ttl){
 			}
 
 			getServicename.add(e.type);
-			saveQery.add(e);
+			saveQuery.add(e);
 
 		});
 
 		
 		try{
-			saveQery.forEach(function(element){
+			saveQuery.forEach(function(element){
 				PTRservice=element.name.split('_');
 				PTRservice=PTRservice[1].split('.');
 				PTRservice=PTRservice[0];
@@ -424,14 +424,14 @@ function serverStart(Instance,Service,txt,domain,ttl){
 		
 			let str;
 
-			saveQery.forEach(function(element){
-
-				let str=element.name.split('.');
-				instance=str[0];
-				service=str[1];
-				service=str[1].split('_');
-				service=service[1];
-
+			saveQuery.forEach(function(element){
+				if(element.type==='TXT'){
+					let str=element.name.split('.');
+					instance=str[0];
+					service=str[1];
+					service=str[1].split('_');
+					service=service[1];
+				}
 			});
 
 			if(p1.responsePTRTXT(instance,service)!= false ){
@@ -443,13 +443,15 @@ function serverStart(Instance,Service,txt,domain,ttl){
 		if(getServicename.has('PTR') && getServicename.has('SRV')){
 
 			let str;
-			saveQery.forEach(function(element){
+			saveQuery.forEach(function(element){
 
-				let str=element.name.split('.');
-				instance=str[0];
-				service=str[1];
-				service=str[1].split('_');
-				service=service[1];
+				if(element.type==='SRV'){
+					let str=element.name.split('.');
+					instance=str[0];
+					service=str[1];
+					service=str[1].split('_');
+					service=service[1];
+				}
 
 			});
 			if(p1.responsePTRSRV(instance,service)!= false ){
@@ -461,13 +463,15 @@ function serverStart(Instance,Service,txt,domain,ttl){
 		if( getServicename.has('PTR') && getServicename.has('SRV') && getServicename.has('TXT') ){
 
 			let str;
-			saveQery.forEach(function(element){
+			saveQuery.forEach(function(element){
 
-				let str=element.name.split('.');
-				instance=str[0];
-				service=str[1];
-				service=str[1].split('_');
-				service=service[1];
+				if(element.type==='SRV'){
+					let str=element.name.split('.');
+					instance=str[0];
+					service=str[1];
+					service=str[1].split('_');
+					service=service[1];
+				}
 
 			});
 			if(p1.responsePTRSRVTXT(instance,service)!= false ){
@@ -478,13 +482,13 @@ function serverStart(Instance,Service,txt,domain,ttl){
 		}
 
 	});
-	
+/*	
 	setInterval(function(){
 		mdns.respond(p1.announcePacket());
 		mdns.respond(p1.responsePTRofDNSSD());
 
 	},ttl*1000);
-	
+*/	
 }
 
 function main(){
@@ -513,4 +517,3 @@ function main(){
 
 }
 main();
-
