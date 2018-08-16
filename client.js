@@ -102,17 +102,15 @@ function main(){
 
 				allService.add(e.data);	
 				if(allService.has(e.data)){
-					console.log("first query"+ e.data);
-					console.log("~~~~");
-					console.log(e);
-					query([e.data,e.data,e.data],['PTR','SRV','TXT']);
+					//console.log("~~~"+JSON.stringify(e));
+					query(e.data,'PTR');
 					
 				}
 			}else{
 				let data=parseSRVTXT(res);
 				mdnsService.add(data);
 				let dnssd=JSON.parse(data);
-				console.log(data);
+				//console.log(data);
 				if(mdnsService.has(data)&& dnssd.ttl !==undefined && check.has(data) === false){
 					
 					
@@ -120,7 +118,7 @@ function main(){
 
 						try{
 							let i=0;
-							console.log(input);
+							//console.log(input);
 							setTimeout(function(){
 								done(input);
 							},input.ttl*1000);
@@ -134,7 +132,7 @@ function main(){
 						check.delete(JSON.stringify(res));
 						temp.add(JSON.stringify(res));
 						
-						//console.log("Resend query"+ res.service+"local");
+						console.log("Resend query"+ res.service+"local");
 						query([res.service+"local", res.instance+"."+res.service+"local", res.instance+"."+res.service+"local"],['PTR','SRV','TXT']);	
 						
 						thread.kill();
@@ -147,7 +145,7 @@ function main(){
 							try{
 								temp.forEach(function(e){
 									if(check.has(e)===false){
-										//console.log("delete\t "+ e );
+										console.log("delete\t "+ e );
 										mdnsService.delete(e);
 									}
 								});
@@ -163,8 +161,8 @@ function main(){
 			}
 		});
 	});
-	//query("_services._dns-sd._udp.local","PTR");
-	query(["_test1._udp.local", "Percomlab._test1._udp.local","Percomlab._test1._udp.local" ],["PTR","SRV","TXT"] );
+	query("_services._dns-sd._udp.local","PTR");
+	//query(["_test1._udp.local", "Percomlab._test1._udp.local","Percomlab._test1._udp.local" ],["PTR","SRV","TXT"] );
 		
 }
 
