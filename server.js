@@ -1,4 +1,5 @@
 const mdns=require('multicast-dns')();
+const http=require('http');
 
 class dnssd{
 	
@@ -316,7 +317,12 @@ class myService{
 			
 			answers.push(dns.generatePTR(instance,Service,ttl));
 			answers.push(dns.generateSRV(instance,Service,ttl,detailService.get(Service),Domain));
-		
+			
+			for(let [key,val] of txt ){
+				answers.push(dns.generateTXT(instance,key,ttl,val));
+			}	
+			
+			
 			answers.push(dns.generateA(Domain,ttl));
 			answers.push(dns.generateAAAA(Domain,ttl));
 	
@@ -495,25 +501,40 @@ function main(){
 	
 	let Service= new Map();
 	let txt=new Map();
-	let domain="Testdoamin";
+	let domain="testdomain";
 
 	const Instance="Percomlab";
-	Service.set("test1",10001);
-	Service.set("test2",10002);
+	Service.set("test1",8080);
+	Service.set("test2",8080);
 	
 
 
-	txt.set("test1","path=140.119.163.195;test=wongwong");
-	txt.set("test2","y=200");
+	txt.set("test1","profile=test1");
+	txt.set("test2","profile=test2");
 	
 	serverStart(Instance,Service,txt,domain,10);
+	/*
 	mdns.on('response',function(res){
 		res.answers.forEach(function(e){
 			if(e.type=='TXT'){
 				console.log(e.data);
 			}
 		});
-	})
+	});
+	*/
+	http.createServer(function(req,res){
+		if(req.url=="/test1"){
+			res.writeHead(200,{'Content-Type':'text/html'});
+			res.write("Success!!!!");
+			res.end();
+		}
+		if(req.url=="/test2"){
+			res.writeHead(200,{'Content-Type':'text/html'});
+			res.write("Success!!!!");
+			res.end();
+		}
+	}).listen(8080);
+
 
 }
 main();

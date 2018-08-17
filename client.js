@@ -1,6 +1,6 @@
 const mdns=require('multicast-dns')();
 const spawn = require('threads').spawn;
-
+const http= require('http');
 function queryObj(name,type){
 	obj={};
 	obj.name=name;
@@ -30,7 +30,7 @@ function query(name,type){
 function parseSRVTXT(packet){
 	
 	let obj={};
-//	console.log(packet.answers);
+
 	packet.answers.forEach(function(e){
 		if(e.type=='PTR'&& e.name!=="_services._dns-sd._udp.local" ){
 			let str=e.data;
@@ -78,7 +78,9 @@ function parseSRVTXT(packet){
 			
 			if(e.type=='TXT'){
 				e.data.forEach(function(e){
+
 					txt.push(e.toString('ascii'));
+
 				});
 			}
 			
@@ -91,6 +93,7 @@ function parseSRVTXT(packet){
 }
 
 function main(){
+	
 	let allService=new Set();
 	let mdnsService=new Set();
 	let check=new Set();
@@ -102,23 +105,28 @@ function main(){
 
 				allService.add(e.data);	
 				if(allService.has(e.data)){
-					//console.log("~~~"+JSON.stringify(e));
 					query(e.data,'PTR');
 					
 				}
 			}else{
 				let data=parseSRVTXT(res);
+				
+				mdnsService.forEach(function(e){
+					let check=JSON.parse(e);
+					let temp=JSON.parse(data);
+					if(check.service==temp.service){
+						mdnsService.delete(e);
+					}
+				});
+				
 				mdnsService.add(data);
 				let dnssd=JSON.parse(data);
-				//console.log(data);
+				
 				if(mdnsService.has(data)&& dnssd.ttl !==undefined && check.has(data) === false){
-					
 					
 					const thread = spawn(function(input, done){
 
 						try{
-							let i=0;
-							//console.log(input);
 							setTimeout(function(){
 								done(input);
 							},input.ttl*1000);
@@ -142,12 +150,13 @@ function main(){
 						console.log("call exit");
 
 						setTimeout(function(){
+							
 							try{
 								temp.forEach(function(e){
-									if(check.has(e)===false){
+									if(check.has(e)===false){	
 										console.log("delete\t "+ e );
-										mdnsService.delete(e);
-									}
+									//	mdnsService.delete(e);	
+																		}
 								});
 								temp.clear();
 							}catch(error){
@@ -162,8 +171,33 @@ function main(){
 		});
 	});
 	query("_services._dns-sd._udp.local","PTR");
-	//query(["_test1._udp.local", "Percomlab._test1._udp.local","Percomlab._test1._udp.local" ],["PTR","SRV","TXT"] );
-		
+
+	setInterval(function(){
+		mdnsService.forEach(function(e){
+			let element = JSON.parse(e);
+			if(element.instance=="Percomlab"){
+				if(element.TXT.length != 0 ){
+					let profile=element.TXT[0].split('=');
+					let url='http://'+element.domain+":"+element.SRV.port+"/"+profile[1];
+					console.log("url=\t"+url);
+					
+					let option={
+						hostname:element.domain,
+						port:element.SRV.port,
+						path:'/'+profile[1],
+						method:'GET'
+					};
+/*
+					http.request(option ,function(res){
+						console.log(res);
+					});
+*/					
+				}
+				
+
+			}
+		});
+	},1000);
 }
 
 main();
