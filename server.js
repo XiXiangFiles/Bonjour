@@ -1,6 +1,6 @@
 const mdns=require('multicast-dns')();
 const http=require('http');
-
+const fs=require('fs');
 class dnssd{
 	
 	generateANY(Instance,Service){
@@ -488,15 +488,43 @@ function serverStart(Instance,Service,txt,domain,ttl){
 		}
 
 	});
-/*	
-	setInterval(function(){
-		mdns.respond(p1.announcePacket());
-		mdns.respond(p1.responsePTRofDNSSD());
-
-	},ttl*1000);
-*/	
 }
+function createServer(service,port){
+	
+	const Service=service;	
+	generateWTM(0,"2018-09-06",service[0],"test for mdns service",[{tag:"0"}],[],[]);
+	generateWTM(0,"2018-09-06",service[1],"test for mdns service",[{tag:"1"}],[],[]);
+	http.createServer(function(req,res){	
+		console.log(Service);	
+		Service.forEach(function(e){
+			if(req.url==("/"+e)){
+				res.writeHead(200,{'Content-Type':'text/html'});
+				fs.readFile('/profile/'+e, function(err, data) {
+				    res.write(data);
+				    res.end();
+			 });
+			}
+		});
+	}).listen(port);
 
+}
+function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
+	let Profile={};
+	Profile.id=id;
+	Profile.name=name;
+	Profile.description=description;
+	Profile.createdAt=createdAt;
+	Profile.tags=tags;
+	Profile.customFields=customFields;
+	Profile.links=links;
+
+	fs.writeFile('profile/'+name+".json",JSON.stringify(Profile), function (err) {
+  		//if (err) throw err;
+  		console.log('Saved!');
+	});
+
+	return JSON.stringify(Profile);
+}
 function main(){
 	
 	let Service= new Map();
@@ -504,37 +532,17 @@ function main(){
 	let domain="testdomain";
 
 	const Instance="Percomlab";
-	Service.set("test1",8080);
-	Service.set("test2",8080);
+	Service.set("Temperature",8080);
+	Service.set("GPS",8080);
 	
 
 
-	txt.set("test1","profile=test1");
-	txt.set("test2","profile=test2");
+	txt.set("GPS","profile=test1;test=123");
+	txt.set("Temperature","profile=test2");
 	
 	serverStart(Instance,Service,txt,domain,10);
-	/*
-	mdns.on('response',function(res){
-		res.answers.forEach(function(e){
-			if(e.type=='TXT'){
-				console.log(e.data);
-			}
-		});
-	});
-	*/
-	http.createServer(function(req,res){
-		if(req.url=="/test1"){
-			res.writeHead(200,{'Content-Type':'text/html'});
-			res.write("Success!!!!");
-			res.end();
-		}
-		if(req.url=="/test2"){
-			res.writeHead(200,{'Content-Type':'text/html'});
-			res.write("Success!!!!");
-			res.end();
-		}
-	}).listen(8080);
 
+	createServer(["GPS","Temperature"],8080);
 
 }
 main();
