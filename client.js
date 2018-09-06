@@ -1,6 +1,7 @@
 const mdns=require('multicast-dns')();
 const spawn = require('threads').spawn;
 const http= require('http');
+const request=require('request');
 function queryObj(name,type){
 	obj={};
 	obj.name=name;
@@ -187,11 +188,11 @@ function main(){
 						path:'/'+profile[1],
 						method:'GET'
 					};
-/*
-					http.request(option ,function(res){
-						console.log(res);
+
+					request(url,function(err,res,body){
+						console.log(body);
 					});
-*/					
+					
 				}
 				
 

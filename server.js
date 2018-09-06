@@ -537,8 +537,8 @@ function main(){
 	
 
 
-	txt.set("GPS","profile=/Temperature;info=testmulti-values");
-	txt.set("Temperature","profile=/GPS");
+	txt.set("Temperature","profile=/Temperature;info=testmulti-values");
+	txt.set("GPS","profile=/GPS");
 	
 	serverStart(Instance,Service,txt,domain,10);
 
