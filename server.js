@@ -492,14 +492,14 @@ function serverStart(Instance,Service,txt,domain,ttl){
 function createServer(service,port){
 	
 	const Service=service;	
-	generateWTM(0,"2018-09-06",service[0],"test for mdns service",[{tag:"0"}],[],[]);
-	generateWTM(0,"2018-09-06",service[1],"test for mdns service",[{tag:"1"}],[],[]);
+	generateWTM(0,"2018-09-06",service[0],service[0],[{tag:"0"}],[],[]);
+	generateWTM(1,"2018-09-06",service[1],service[1],[{tag:"1"}],[],[]);
 	http.createServer(function(req,res){	
 		console.log(Service);	
 		Service.forEach(function(e){
 			if(req.url==("/"+e)){
 				res.writeHead(200,{'Content-Type':'text/html'});
-				fs.readFile('/profile/'+e, function(err, data) {
+				fs.readFile('profile/'+e+".json", function(err, data) {
 				    res.write(data);
 				    res.end();
 			 });
@@ -537,8 +537,8 @@ function main(){
 	
 
 
-	txt.set("GPS","profile=test1;test=123");
-	txt.set("Temperature","profile=test2");
+	txt.set("GPS","profile=/Temperature;info=testmulti-values");
+	txt.set("Temperature","profile=/GPS");
 	
 	serverStart(Instance,Service,txt,domain,10);
 

@@ -178,7 +178,7 @@ function main(){
 			if(element.instance=="Percomlab"){
 				if(element.TXT.length != 0 ){
 					let profile=element.TXT[0].split('=');
-					let url='http://'+element.domain+":"+element.SRV.port+"/"+profile[1];
+					let url='http://'+element.domain+":"+element.SRV.port+profile[1];
 					console.log("url=\t"+url);
 					
 					let option={
