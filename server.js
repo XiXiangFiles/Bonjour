@@ -490,12 +490,29 @@ function serverStart(Instance,Service,txt,domain,ttl){
 	});
 }
 function createServer(service,port){
-	
+	function properties(link,title){
+		let obj={};
+		obj.link=link;
+		obj.title=title;
+		return obj;
+	}
+
 	const Service=service;	
-	generateWTM(0,"2018-09-06",service[0],service[0],[{tag:"0"}],[],[]);
-	generateWTM(1,"2018-09-06",service[1],service[1],[{tag:"1"}],[],[]);
+	let customField={};
+	let customField2={};
+
+	customField.sersor="GPS Sersor";
+	customField.type="GPS";
+
+	customField2.sersor="Temperature Sersor";
+	customField2.type="DH11";
+
+
+		
+	generateWTM(0,"2018-09-06","2018-09-07",service[0],service[0],[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
+	generateWTM(1,"2018-09-06","2018-09-07",service[1],service[1],[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
+	
 	http.createServer(function(req,res){	
-		console.log(Service);	
 		Service.forEach(function(e){
 			if(req.url==("/"+e)){
 				res.writeHead(200,{'Content-Type':'text/html'});
@@ -508,23 +525,45 @@ function createServer(service,port){
 	}).listen(port);
 
 }
+
+function gererateLinks(model,properties,actions,things,subscriptions,type,product,help,ui,customRelType){
+	
+	let obj={};
+	
+	obj.model=model;
+	obj.properties=properties;
+	obj.actions=actions;
+	obj.things=things;
+	obj.subscriptions=subscriptions;
+	obj.type=type;
+	obj.product=product;
+	obj.help=help;
+	obj.ui=ui;
+	obj.customRelType=customRelType;
+	
+	return obj;
+}
+
 function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
+	
 	let Profile={};
 	Profile.id=id;
 	Profile.name=name;
 	Profile.description=description;
 	Profile.createdAt=createdAt;
+	Profile.updateAt=updateAt;
 	Profile.tags=tags;
 	Profile.customFields=customFields;
 	Profile.links=links;
 
 	fs.writeFile('profile/'+name+".json",JSON.stringify(Profile), function (err) {
-  		//if (err) throw err;
-  		console.log('Saved!');
+  		if (err) throw err;
+  			console.log('Saved!');
 	});
 
 	return JSON.stringify(Profile);
 }
+
 function main(){
 	
 	let Service= new Map();
@@ -537,7 +576,7 @@ function main(){
 	
 
 
-	txt.set("Temperature","profile=/Temperature;info=testmulti-values");
+	txt.set("Temperature","profile=/Temperature");
 	txt.set("GPS","profile=/GPS");
 	
 	serverStart(Instance,Service,txt,domain,10);
