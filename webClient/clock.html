@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Clock</title>
+	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="js/browserMqtt.js"></script>
+	<style type="text/css">
+		/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+	html, body, div, applet, object, iframe,
+	h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+	a, abbr, acronym, address, big, cite, code,
+	del, dfn, em, img, ins, kbd, q, s, samp,
+	small, strike, strong, sub, sup, tt, var,
+	b, u, i, center,
+	dl, dt, dd, ol, ul, li,
+	fieldset, form, label, legend,
+	table, caption, tbody, tfoot, thead, tr, th, td,
+	article, aside, canvas, details, embed, 
+	figure, figcaption, footer, header, hgroup, 
+	menu, nav, output, ruby, section, summary,
+	time, mark, audio, video {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font-size: 100%;
+		font: inherit;
+		vertical-align: baseline;
+	}
+	/* HTML5 display-role reset for older browsers */
+	article, aside, details, figcaption, figure, 
+	footer, header, hgroup, menu, nav, section {
+		display: block;
+	}
+	body {
+		line-height: 1;
+	}
+	ol, ul {
+		list-style: none;
+	}
+	blockquote, q {
+		quotes: none;
+	}
+	blockquote:before, blockquote:after,
+	q:before, q:after {
+		content: '';
+		content: none;
+	}
+	table {
+		border-collapse: collapse;
+		border-spacing: 0;
+	}
+	#txt{
+		font-size: 340px;
+		text-align: center;
+	}
+	.Min,.P{
+		width: 150px;
+		height:180px;
+		text-align: center;
+		font-size:200px; 
+		color: red;
+		/*margin-top: -10px;*/
+	}
+	.Sec,.SET{
+		width: 230px;
+		height: 180px;
+		text-align: center;
+		font-size:200px; 
+		color: red;
+	}
+	.content{
+		float: left;
+		margin-left: 20%;
+	}
+	span{
+		/*width: 90px;*/
+		height: 120px;
+		font-size: 100px;
+		/*display: block;*/
+	}
+	button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+#start,.addMe{
+	background-color: #E7475E;
+}
+.but{
+	margin-left: 1%;
+}
+</style>
+</head>
+<body onload="startTime()">
+	<div id="txt"></div>
+	<div class="content">
+		<span class="sm">M</span><input type="text" class="Min" value="0">
+		<span class="ss">S</span><input type="text" class="Sec" value="0"><br>
+		<span>P</span><input type="text" class="P" value="0">
+		<span>SET</span><input type="text" class="SET" value="1"><br>
+		
+	</div>
+	<div class="but">
+		<button class="addM">+M</button><button class="subM">-M</button>
+		<button class="addS">+S</button><button class="subS">-S</button>
+		<button class="addMe">Memory</button>
+		<button class="addSET">+SET</button><button class="subSET">-SET</button>
+		<button id="start">start</button>
+		<button id="pause">pause</button>
+	</div>
+	<article id="show"></article>
+	<script type="text/javascript">
+	let Min=0;
+	let Sec=0;
+	let SET=parseInt($(".SET").val());
+	let start=0;
+	let temp;
+	let program=[];//record the train items
+	let length=0;
+	let keep;//record set
+	function startTime() {
+		let today = new Date();
+		let h = today.getHours();
+		let m = today.getMinutes();
+		let s = today.getSeconds();
+	   	if (start==1) {
+	   		if (program.length==1) {
+	   			$(".P").val(1);
+	   		}else{
+	   			
+	   		}
+	   		if(temp!=s){
+	   			console.log("temp2=\t"+temp);
+	   			if (Sec==0 && Min !=0) {
+	   				Min--;
+	   				Sec=59;
+	   			}else{
+	   				Sec--;
+	   			}
+	   			if (Sec==0 && Min==0) {
+	   				if(SET!=0 && length<program.length){
+						let str=program[length].split(":");
+						$(".P").val(length+1);
+						$(".SET").val(SET);
+						Min=parseInt(str[0]);
+						Sec=parseInt(str[1]);
+						length++;
+	   				}	
+	   			}
+	   			if (length==program.length) {
+	   					SET--;
+	   					length=0;
+	   			}
+	   			if(Sec==-1){
+	   				start=0;
+	   				$(".SET").val(keep);
+	   			}else{
+	   				document.getElementById('txt').innerHTML = checkTime(Min) + ":" + checkTime(Sec);
+	   			}
+	   			temp=s;
+	   		}
+	   	}else if(start==0){
+			document.getElementById('txt').innerHTML =  checkTime(m) + ":" + checkTime(s);
+	   	}else if(start>1){
+	   		document.getElementById('txt').innerHTML = checkTime(Min) + ":" + checkTime(Sec);
+	   	}
+	    let t = setTimeout(startTime, 500);
+	}
+	function checkTime(i) {
+		if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+		return i;
+	}
+	function check(value){
+		if(value<0){
+			return 0;
+		}else{
+			return value;
+		}
+	}
+	function add_p(Id,Class,Content){
+		let tag="<p "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</p>";
+		return tag;
+	}
+	function newline(Min , Sec){
+		return Min+":"+Sec;
+	}
+	$(".addM").click(function(){
+		if (start==0) {
+			let Min=parseInt($(".Min").val());
+			$(".Min").val(check(++Min));
+		}else{
+			Min++;
+		}
+		
+	});
+	$(".subM").click(function(){
+		if(start==0){
+			let Min=parseInt($(".Min").val());
+			$(".Min").val(check(--Min));
+		}else{
+			Min--;
+		}
+	});
+	$(".addS").click(function(){
+		if(start==0){
+			let Sec=parseInt($(".Sec").val());
+			$(".Sec").val(check(++Sec));
+		}else{
+			Sec++;
+		}
+		
+	});
+	$(".subS").click(function(){
+		if(start==0){
+			let Sec=parseInt($(".Sec").val());
+			$(".Sec").val(check(--Sec));
+		}else{
+			Sec--;
+		}
+	});
+	$(".addSET").click(function(){
+		let SET=parseInt($(".SET").val());
+		$(".SET").val(check(++SET));
+	});
+	$(".subSET").click(function(){
+		let SET=parseInt($(".SET").val());
+		$(".SET").val(check(--SET));
+	});
+	$(".addMe").off().on('click',function(){
+		let Min=parseInt($(".Min").val());
+		let Sec=parseInt($(".Sec").val());
+		if(Min != 0 || Sec != 0){
+			let str=newline(Min,Sec);
+			let tag=add_p("","show",str);
+			program.push(str);
+			$(".Min").val(0);
+			$(".Sec").val(0);
+			$(".P").val(program.length);
+		}
+	});
+	$("#start").off().on('click',function(){
+		if(program.length>0 && start==0){
+			let today = new Date();
+			temp=today.getSeconds();
+			start=1;
+			let str=program[0].split(":");
+			SET=parseInt($(".SET").val());
+			keep=SET;
+			Min=parseInt(str[0]);
+			Sec=parseInt(str[1]);
+			$(".P").val(1);
+			length++;
+			$(".Min,.Sec,.sm,.ss").css({'display':'none'});
+		}else if(start>1){
+			start=1;
+		}	
+	});
+	$("#pause").off().on('click',function(){
+		if (start==1) {
+			start++;
+		}else{
+			
+		}	
+	});
+
+</script>
+</body>
+</html>
