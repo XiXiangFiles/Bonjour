@@ -2,6 +2,9 @@ const mdns=require('multicast-dns')();
 const spawn = require('threads').spawn;
 const http= require('http');
 const request=require('request');
+const fs=require('fs');
+//let mDNSservice=new Set();
+
 function queryObj(name,type){
 	obj={};
 	obj.name=name;
@@ -99,7 +102,7 @@ function main(){
 	let mdnsService=new Set();
 	let check=new Set();
 	let temp=new Set();
-
+	
 	mdns.on('response',function(res){
 		res.answers.forEach(function(e){
 			if(e.type=='PTR' && e.name=="_services._dns-sd._udp.local"){
@@ -172,8 +175,31 @@ function main(){
 		});
 	});
 	query("_services._dns-sd._udp.local","PTR");
+	
+	http.createServer(function(req,res){
+		if(req.url=="/"){
+			let txt=fs.readFile("floder/index.html",'utf-8',function(err,data){
+				if(err){
+					res.writeHead(404,{'Content-Type': 'text/html'});
+				}else{
+					res.writeHead(200,{'Content-Type': 'text/html'});
+					res.write(data);
+				}
+				
+					res.end();
+			});
+		}
+		fs.readFile("floder"+req.url,function(err,data){
+			if(!err){
+				res.write(data);	
+			}
+			res.end();
+		});
+
+	}).listen(3001);
 
 	setInterval(function(){
+		//mDNSservice=mdsnService;
 		//console.log(mdnsService.size);
 		/*
 		mdnsService.forEach(function(e){
@@ -203,5 +229,5 @@ function main(){
 		*/
 	},1000);
 }
-
 main();
+//module.exports
