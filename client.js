@@ -156,7 +156,7 @@ function main(){
 								temp.forEach(function(e){
 									if(check.has(e)===false){	
 										console.log("delete\t "+ e );
-									//	mdnsService.delete(e);	
+										mdnsService.delete(e);	
 																		}
 								});
 								temp.clear();
@@ -174,6 +174,8 @@ function main(){
 	query("_services._dns-sd._udp.local","PTR");
 
 	setInterval(function(){
+		console.log(mdnsService.size);
+		/*
 		mdnsService.forEach(function(e){
 			let element = JSON.parse(e);
 			if(element.instance=="Percomlab"){
@@ -198,6 +200,7 @@ function main(){
 
 			}
 		});
+		*/
 	},1000);
 }
 
