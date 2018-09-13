@@ -174,7 +174,7 @@ function main(){
 	query("_services._dns-sd._udp.local","PTR");
 
 	setInterval(function(){
-		console.log(mdnsService.size);
+		//console.log(mdnsService.size);
 		/*
 		mdnsService.forEach(function(e){
 			let element = JSON.parse(e);
