@@ -177,24 +177,49 @@ function main(){
 	query("_services._dns-sd._udp.local","PTR");
 	
 	http.createServer(function(req,res){
-		if(req.url=="/"){
-			let txt=fs.readFile("floder/index.html",'utf-8',function(err,data){
-				if(err){
-					res.writeHead(404,{'Content-Type': 'text/html'});
-				}else{
-					res.writeHead(200,{'Content-Type': 'text/html'});
-					res.write(data);
-				}
-				
-					res.end();
-			});
+		function istype(type){
+			if(type == 'html' || type == 'css' || type== 'png' || type== 'ico'|| type=='js')
+				return true;
+			else 
+				return false;
 		}
-		fs.readFile("floder"+req.url,function(err,data){
-			if(!err){
-				res.write(data);	
+		if(req.method == 'GET'){
+			let files;
+			files=req.url.split('.');
+			
+			if(req.url=="/"){
+				let txt=fs.readFile("floder/index.html",'utf-8',function(err,data){
+					if(err){
+						res.writeHead(404,{'Content-Type': 'text/html'});
+					}else{
+						res.writeHead(200,{'Content-Type': 'text/html'});
+						res.write(data);
+					}
+				
+						res.end();
+				});
 			}
-			res.end();
-		});
+			if(req.url.substring(0,12)=="/getServices"){
+				let arr=[];
+				mdnsService.forEach(function(e){
+					arr.push(e);
+				});
+				res.write(arr.toString());
+				res.end();
+			}
+			if(istype(files[files.length-1])){
+				fs.readFile("floder"+req.url,function(err,data){
+					if(!err){
+						res.write(data);	
+					}else{
+						console.log("failed to access "+ "floder"+req.url);
+					}
+					res.end();
+				});	
+			}	
+			
+		}	
+		
 
 	}).listen(3001);
 
