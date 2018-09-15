@@ -50,15 +50,19 @@ function parseSRVTXT(packet){
 			}
 		}
 		else if(e.type=='SRV'){
+
 			obj.ttl=e.ttl;
 			obj.SRV=e.data;
 			obj.domain=e.data.target;
-		}if(e.tpye=='TXT'){
+		
+		}else if(e.type=='TXT'){
 			let txt=[];
-			e.data.forEach(function(e){
-				txt.push(Buffer.from(e,'utf8'));
+			e.data.forEach(function(e2){
+				txt.push(e2.toString('ascii'));
+				//console.log(e2.toString('ascii'))
 			});		
-			obj.TXT=e;
+			obj.TXT=txt;
+
 		}else if(e.type=='A')
 			obj.ipv4=e.data;
 		else if (e.type=='AAAA')
@@ -113,6 +117,7 @@ function main(){
 					
 				}
 			}else{
+				//console.log(res);
 				let data=parseSRVTXT(res);
 				
 				mdnsService.forEach(function(e){
@@ -203,7 +208,9 @@ function main(){
 				let arr=[];
 				mdnsService.forEach(function(e){
 					arr.push(e);
+					//console.log(e);
 				});
+				arr.sort((x,y)=>{x-y});
 				res.write(arr.toString());
 				res.end();
 			}
@@ -226,7 +233,7 @@ function main(){
 	setInterval(function(){
 		//mDNSservice=mdsnService;
 		//console.log(mdnsService.size);
-		/*
+	/*	
 		mdnsService.forEach(function(e){
 			let element = JSON.parse(e);
 			if(element.instance=="Percomlab"){
@@ -251,7 +258,7 @@ function main(){
 
 			}
 		});
-		*/
+	*/	
 	},1000);
 }
 main();
