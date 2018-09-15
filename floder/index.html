@@ -14,6 +14,8 @@
 	<link href="css/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/sticky-footer-navbar.css" rel="stylesheet">
 	<link href="css/form-validation.css" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="/js/DomElements.js"></script>
 	<!-- <link href="css/grid.css" rel="stylesheet"> -->
 	<style>
 	h2{
@@ -293,19 +295,8 @@
                	<th>Profile</th>
                	<th>Domain</th>
                </thead>
-               <tbody>
-	               	<tr>
-	               	
-	               		<td rowspan="2" class="agenda-date active">test</td>        		
-		               	<td class="agenda-date active">test</td>
-		               	<td class="agenda-date active">test</td>
-		               	<td class="agenda-date active">test</td>
-	               	</tr>
-	               	<tr>		
-		               	<td class="agenda-date active">test</td>
-		               	<td class="agenda-date active">test</td>
-		               	<td class="agenda-date active">test</td>
-	               	</tr>
+               <tbody class="serviceContent">
+	               			
                </tbody>
             </table>
         </div>
@@ -339,3 +330,75 @@
 </body>
 
 </html>
+<script>
+	setInterval(function(){
+		$.ajax({
+			url:"getServices",
+			method:"GET",
+			cache:false,
+			success:function(res){
+				
+				$('.serviceContent').empty();
+				let instance=new Set();
+				let rawspan=new Map();
+				let str="[";
+				str +=res;
+				str +="]";
+				let services=JSON.parse(str);
+				
+				services.forEach(function(e){
+					instance.add(e.instance);
+				});
+				
+				instance.forEach(function(e){
+					let temp=0;
+					services.forEach(function(srv){
+						if(srv.instance==e){
+							temp++;
+						}
+					});
+					rawspan.set(e,temp);
+				});
+				rawspan.forEach(function(val,key){
+					
+				
+					let cnt=0;
+					let tr="";
+					let td="";
+					td+=add_td("","agenda-date active",val,key);
+					services.forEach(function(e){
+						//console.log(e);
+						if(key==e.instance){
+							
+							if(cnt==0){
+								td+=add_td("","agenda-date active",undefined,e.service);
+								td+=add_td("","agenda-date active",undefined,e.TXT);
+								td+=add_td("","agenda-date active",undefined,e.domain);
+								tr+=add_tr("","",td);	
+								
+								$('.serviceContent').append(tr);
+								td="";
+								tr="";
+							}
+							
+							if(cnt++>0){
+
+								td+=add_td("","agenda-date active",undefined,e.service);
+								td+=add_td("","agenda-date active",undefined,e.TXT);	
+								td+=add_td("","agenda-date active",undefined,e.domain);
+								tr+=add_tr("","",td);
+								$('.serviceContent').append(tr);
+								td="";
+								tr="";
+								cnt=0;
+							}
+						}
+						console.log(td);
+					});
+					//console.log("tr= "+tr);
+				});
+			}
+		})
+	},8000);	
+	
+</script>
