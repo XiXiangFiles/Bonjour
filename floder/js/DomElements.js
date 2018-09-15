@@ -59,3 +59,7 @@ function add_th(Id,Class,Content){
 	let tag="<th "+"id= "+"\""+Id+"\""+"class="+"\""+Class+"\">"+Content+"</th>";
 	return tag;
 }
+function add_span(Id,Class,Content){
+	let tag="<span "+"id= "+"\""+Id+"\""+"class="+"\""+Class+"\">"+Content+"</span>";
+	return tag;
+}
