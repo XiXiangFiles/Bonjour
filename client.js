@@ -3,7 +3,6 @@ const spawn = require('threads').spawn;
 const http= require('http');
 const request=require('request');
 const fs=require('fs');
-//let mDNSservice=new Set();
 
 function queryObj(name,type){
 	obj={};
@@ -214,6 +213,60 @@ function main(){
 				res.write(arr.toString());
 				res.end();
 			}
+			if(req.url.substring(0,8)=="/profile"){
+				let file=req.url.split('?');
+				fs.readFile("floder"+file[0],function(err,data){
+					if(!err){
+						res.write(data);	
+					}else{
+						console.log("failed to access "+ "floder"+req.url);
+					}
+					res.end();
+				});
+
+			}
+			if(req.url.substring(0,11)=="/getProfile"){
+				let data=req.url.split('?');
+				if(data.length != 2 ){
+					res.write("false");
+					res.end();
+				}else {
+					let uri=data[1].split("&");
+					if(uri.length<3){
+						res.write("false");
+						res.end();
+					}else{
+
+						let domain,port,profile;
+
+						uri.forEach(function(e){
+							let str=e.split('=');	
+							switch(str[0]){
+								case 'domain':
+									domain=str[1];
+									break;
+								case 'port':
+									port=str[1]
+									break;
+								case 'profile':
+									profile=str[1];
+									break;
+							}
+						});
+						let finaluri="http://"+domain+":"+port+profile;
+						
+						request.get(finaluri).on('response',function(response){
+							response.on('data',function(data){
+								console.log(data.toString('utf-8'));
+								res.write(data.toString('utf-8'));
+								res.end();
+							});
+						});
+					
+					}
+				}
+			}
+
 			if(istype(files[files.length-1])){
 				fs.readFile("floder"+req.url,function(err,data){
 					if(!err){
