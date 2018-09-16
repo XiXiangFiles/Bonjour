@@ -363,7 +363,10 @@
 				});
 				rawspan.forEach(function(val,key){
 					
-				
+					function url(domain,port,profile){
+						let url="profile.html?domain="+domain+"&port="+port+"&profile="+profile;
+						return url;
+					}
 					let cnt=0;
 					let tr="";
 					let td="";
@@ -387,7 +390,7 @@
 
 							if(cnt==0){
 								td+=add_td("","agenda-date active",undefined,e.service);
-								td+=add_td("","agenda-date active",undefined,profile+add_span("","txt",othertxt));
+								td+=add_td("","agenda-date active",undefined,add_a("","",url(e.domain,e.SRV.port,profile),profile)+add_span("","txt",othertxt));
 								td+=add_td("","agenda-date active",undefined,e.domain);
 								tr+=add_tr("","",td);	
 								
@@ -399,7 +402,7 @@
 							if(cnt++>0){
 
 								td+=add_td("","agenda-date active",undefined,e.service);
-								td+=add_td("","agenda-date active",undefined,profile+add_span("","txt",othertxt));	
+								td+=add_td("","agenda-date active",undefined,add_a("","",url(e.domain,e.SRV.port,profile),profile)+add_span("","txt",othertxt));	
 								td+=add_td("","agenda-date active",undefined,e.domain);
 								tr+=add_tr("","",td);
 								$('.serviceContent').append(tr);
