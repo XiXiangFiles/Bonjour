@@ -281,7 +281,7 @@
 	    </p>
     
 	    <div class="alert alert-warning">
-	        <h4>ALL of the resorce show at beneath table.</h4>
+	        <h4 class="query">Query :</h4>
 	        <p></p>
 	    </div>
 
@@ -330,6 +330,8 @@
 		method:"GET",
 		cache:false,
 		success:function(res){
+			let result=JSON.parse(res);
+			$('.query').append(result.query);
 			console.log(res);
 		}
 	});		

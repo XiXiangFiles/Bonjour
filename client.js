@@ -257,8 +257,11 @@ function main(){
 						
 						request.get(finaluri).on('response',function(response){
 							response.on('data',function(data){
-								console.log(data.toString('utf-8'));
-								res.write(data.toString('utf-8'));
+								let obj={};
+								obj.query=finaluri;
+								obj.profile=JSON.parse(data.toString('utf-8'));
+								//console.log(data.toString('utf-8'));
+								res.write(JSON.stringify(obj));
 								res.end();
 							});
 						});
