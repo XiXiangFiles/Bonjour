@@ -67,3 +67,7 @@ function add_a(Id,Class,Href,Content){
 	let tag="<a "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\" href=\""+Href+"\">"+Content+"</a>";
 	return tag;
 }
+function add_label(Id,Class,Content){
+	let tag="<label "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</label>";
+	return tag;
+}
