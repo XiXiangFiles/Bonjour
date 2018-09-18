@@ -209,7 +209,7 @@ function main(){
 					arr.push(e);
 					//console.log(e);
 				});
-				arr.sort((x,y)=>{x-y});
+				arr.sort((x,y)=>{x.length-y.length});
 				res.write(arr.toString());
 				res.end();
 			}
@@ -259,8 +259,8 @@ function main(){
 							response.on('data',function(data){
 								let obj={};
 								obj.query=finaluri;
+								obj.service={domain:domain,port:port};
 								obj.profile=JSON.parse(data.toString('utf-8'));
-								//console.log(data.toString('utf-8'));
 								res.write(JSON.stringify(obj));
 								res.end();
 							});

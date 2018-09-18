@@ -230,6 +230,27 @@
 
 </html>
 <script>
+	function queryLinks(domain,port,name,type,method){
+		let data={};
+		data.domain=domain;
+		data.port=port;
+		data.name=name;
+		data.type=type;
+		console.log(data);
+		console.log("method= "+ method)
+		/*
+		.ajax({
+			url:"query",
+			method:"GET",
+			cache:false,
+			data:data,
+			success:function(res){
+				console.log(res);
+			}
+
+		});
+		*/
+	}
 	let href=window.location.href;
 	data=href.split('?');
 	$.ajax({
@@ -261,13 +282,13 @@
 			$('.profile').append(links);
 
 
-			let linksbtn=add_button("","btn btn-info","Model",undefined,result.profile.links.model.title);
-			linksbtn+=add_button("","btn btn-info","Properties",undefined,result.profile.links.properties.title);
-			linksbtn+=add_button("","btn btn-info","Action",undefined,result.profile.links.actions.title);
-			linksbtn+=add_button("","btn btn-info","Things",undefined,result.profile.links.things.title);
-			linksbtn+=add_button("","btn btn-info","Subscriptions",undefined,result.profile.links.subscriptions.title);
-			linksbtn+=add_button("","btn btn-info","Type",undefined,result.profile.links.type.title);
-			linksbtn+=add_button("","btn btn-info","Product",undefined,result.profile.links.product.title);
+			let linksbtn=add_button("","btn btn-info","Model","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.model.link+"','GET')",result.profile.links.model.title);
+			linksbtn+=add_button("","btn btn-info","Properties","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.properties.link+"','GET')",result.profile.links.properties.title);
+			linksbtn+=add_button("","btn btn-info","Action","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.actions.link+"','GET')",result.profile.links.actions.title);
+			linksbtn+=add_button("","btn btn-info","Things","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.things.link+"','GET')",result.profile.links.things.title);
+			linksbtn+=add_button("","btn btn-info","Subscriptions","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.subscriptions.link+"','GET')",result.profile.links.subscriptions.title);
+			linksbtn+=add_button("","btn btn-info","Type","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.type.link+"','GET')",result.profile.links.type.title);
+			linksbtn+=add_button("","btn btn-info","Product","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.product.link+"','GET')",result.profile.links.product.title);
 			$('.box-footer').append(linksbtn);
 		
 		}

@@ -2,10 +2,9 @@ function add_button(Id,Class,Content,onclick,title){
 	let tag;
 	if(onclick==undefined && title == undefined)
 		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</button>";
-	else if(onclick !=undefined )
-		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"+ onclick=\""+onclick+"\">"+Content+"</button>";
-	if(title != undefined)
-		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"+ title=\""+title+"\">"+Content+"</button>";
+	else 
+		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"onclick=\""+onclick+"\""+"\"title=\""+title+"\" >"+Content+"</button>";
+	
 	return tag;
 }
 function add_select(Id,Class,Content){
