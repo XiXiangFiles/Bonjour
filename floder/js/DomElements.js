@@ -1,9 +1,11 @@
-function add_button(Id,Class,Content,onclick){
+function add_button(Id,Class,Content,onclick,title){
 	let tag;
-	if(onclick==undefined)
+	if(onclick==undefined && title == undefined)
 		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</button>";
-	else
+	else if(onclick !=undefined )
 		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"+ onclick=\""+onclick+"\">"+Content+"</button>";
+	if(title != undefined)
+		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"+ title=\""+title+"\">"+Content+"</button>";
 	return tag;
 }
 function add_select(Id,Class,Content){

@@ -119,7 +119,31 @@
 	}
 	.profilecontent{
 		margin-left: 1.9%;
-		width: 50%;	
+		width: 80%;	
+	}
+	.links{
+		width : 44%;
+		margin: -1.2% 0% 0% 1%;
+	}
+	.content{
+		margin-top :3%;
+	}
+	.profile{
+		width:55%;
+	}
+	.link-content{
+		width:45%;
+	}
+	.link-result{
+		background-color:#343a4024;
+		height:100%;
+		padding : 1%
+	}	
+	button{
+		margin-right:1%;	
+	}
+	header{
+		height:50%;
 	}
 	@media (max-width: 767px) {
 	    
@@ -131,20 +155,18 @@
 	<header>
       <!-- Fixed navbar -->
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand logo" href="#"><img class="logo" src="img/logo.png"></a>
+        <a class="navbar-brand logo" href="/index.html"><img class="logo" src="img/logo.png"></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-              <button class="logout nav-link">log out</button>
-            </li>
+            
 
           </ul>
-          <form class="form-inline mt-2 mt-md-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          <form class="mt-2 mt-md-0" style="display : flex">
+		  <!--<input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+		  <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
           </form>
         </div>
       </nav>
@@ -153,7 +175,7 @@
 	<div class="container">
 	
 		
-	<div class="workshopArea">
+	<div class="workshopArea content">
 		<h2>mDNS/DNS-SD DEMO</h2>
 	    <p class="lead">
 	        
@@ -167,25 +189,31 @@
     	<hr/>
 
             
-              <div class="box-body">
+              <div class="box-body" style="display: flex ">
                 <div class="form-group profile">
                                     
                 </div>
+		<div class= "link-content">
+			<h4>The Links Result</h4>
+			<hr/>
+			<div class="link-result">
+			</div>	            
+			
+			</div>
+		
               </div>
 
 
               <!-- /.box-body -->
-              <div class="box-footer">
-                <button type="submit" class="btn btn-default">Cancel</button>
-                <button type="submit" class="btn btn-info pull-right">Sign in</button>
-              </div>
+              <div class="box-footer form-control links">
+	     </div>
+	
               <!-- /.box-footer -->
             
           </div>
 	    <div class="agenda">
 	        <div class="table-responsive">
 	        	<h4 class="mb-3" id="tableTitle"></h4>
-	            
 	        </div>
 	    </div>
 	</div>
@@ -193,11 +221,11 @@
 
 
 </div>
-
-	<footer class="footer">
+<!--
+    <footer class="footer">
         <span class="text-muted">Place sticky footer content here.</span>
     </footer>
-	
+-->	
 </body>
 
 </html>
@@ -223,9 +251,6 @@
 			let customFields=add_label("","col-sm-2 control-label","customFields");
 			customFields +=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.profile.customFields));
 			let links=add_label("","col-sm-2 control-label","Links");
-			links += add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.profile.links));
-
-
 
 
 			$('.profile').append(id);
@@ -236,6 +261,15 @@
 			$('.profile').append(links);
 
 
+			let linksbtn=add_button("","btn btn-info","Model",undefined,result.profile.links.model.title);
+			linksbtn+=add_button("","btn btn-info","Properties",undefined,result.profile.links.properties.title);
+			linksbtn+=add_button("","btn btn-info","Action",undefined,result.profile.links.actions.title);
+			linksbtn+=add_button("","btn btn-info","Things",undefined,result.profile.links.things.title);
+			linksbtn+=add_button("","btn btn-info","Subscriptions",undefined,result.profile.links.subscriptions.title);
+			linksbtn+=add_button("","btn btn-info","Type",undefined,result.profile.links.type.title);
+			linksbtn+=add_button("","btn btn-info","Product",undefined,result.profile.links.product.title);
+			$('.box-footer').append(linksbtn);
+		
 		}
 	});		
 	
