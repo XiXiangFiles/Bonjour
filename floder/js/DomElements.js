@@ -3,7 +3,7 @@ function add_button(Id,Class,Content,onclick,title){
 	if(onclick==undefined && title == undefined)
 		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</button>";
 	else 
-		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\"onclick=\""+onclick+"\""+"\"title=\""+title+"\" >"+Content+"</button>";
+		tag="<button "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\" onclick=\""+onclick+"\""+"title=\""+title+"\" >"+Content+"</button>";
 	
 	return tag;
 }
