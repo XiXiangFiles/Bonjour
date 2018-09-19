@@ -284,22 +284,46 @@ function main(){
 			
 		}
 		if(req.url.substring(1,6)=='query'){
-			
+		
 			if(req.url==='/query'){
-				//res.write('false');
+				res.write('false');
 				res.end();
 			}else{
-				let deurl=req.url.split('?');
+				
+				let str=req.url;
+				let deurl=str.split('?');
 				let data = new Map();
 				let keyVal=deurl[1].split('&');
+				let domain,port,url,finaluri;
+
 				keyVal.forEach(function(e){
 					let dekeyVal=e.split('=');
 					data.set(dekeyVal[0],dekeyVal[1]);
 				});
-				if(req.url.method=='GET'){
+				for(let [key , val] of data){
+					if (key == "domain")
+						domain=val;
+					else if( key == "port")
+						port=val;
+					else if(key == "type"){
+						url=val;
+					}
+				}
+				
+				finaluri="http://"+domain+":"+port+"/"+url.replace("%2F","/");
+				
+				if(req.method=='GET'){
 
-					/*
+					
+					res.write(finaluri);
+					//res.end();
+
+						
 					request.get(finaluri).on('response',function(response){
+						response.on('error',function(err){
+							res.write("false");
+							res.end();		
+						})
 						response.on('data',function(data){
 							let obj={};
 							obj.query=finaluri;
@@ -309,7 +333,8 @@ function main(){
 							res.end();
 						});
 					});
-					*/
+					
+			
 
 				}else if(req.url.method=='POST'){
 					
