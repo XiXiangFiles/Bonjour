@@ -238,10 +238,10 @@
 		data.type=type;
 		console.log(data);
 		console.log("method= "+ method)
-		/*
-		.ajax({
+		
+		$.ajax({
 			url:"query",
-			method:"GET",
+			type:method,
 			cache:false,
 			data:data,
 			success:function(res){
@@ -249,13 +249,13 @@
 			}
 
 		});
-		*/
+		
 	}
 	let href=window.location.href;
 	data=href.split('?');
 	$.ajax({
 		url:"getProfile?"+data[1],
-		method:"GET",
+		type:"GET",
 		cache:false,
 		success:function(res){
 			console.log(res);

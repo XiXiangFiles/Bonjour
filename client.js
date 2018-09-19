@@ -187,7 +187,8 @@ function main(){
 			else 
 				return false;
 		}
-		if(req.method == 'GET'){
+		if(req.method == 'GET' && req.url.substring(1,6)!='query'){
+			
 			let files;
 			files=req.url.split('.');
 			
@@ -281,41 +282,55 @@ function main(){
 				});	
 			}	
 			
-		}	
-		
+		}
+		if(req.url.substring(1,6)=='query'){
+			
+			if(req.url==='/query'){
+				//res.write('false');
+				res.end();
+			}else{
+				let deurl=req.url.split('?');
+				let data = new Map();
+				let keyVal=deurl[1].split('&');
+				keyVal.forEach(function(e){
+					let dekeyVal=e.split('=');
+					data.set(dekeyVal[0],dekeyVal[1]);
+				});
+				if(req.url.method=='GET'){
 
-	}).listen(3001);
-
-	setInterval(function(){
-		//mDNSservice=mdsnService;
-		//console.log(mdnsService.size);
-	/*	
-		mdnsService.forEach(function(e){
-			let element = JSON.parse(e);
-			if(element.instance=="Percomlab"){
-				if(element.TXT.length != 0 ){
-					let profile=element.TXT[0].split('=');
-					let url='http://'+element.domain+":"+element.SRV.port+profile[1];
-					console.log("url=\t"+url);
-					
-					let option={
-						hostname:element.domain,
-						port:element.SRV.port,
-						path:'/'+profile[1],
-						method:'GET'
-					};
-
-					request(url,function(err,res,body){
-						console.log(body);
+					/*
+					request.get(finaluri).on('response',function(response){
+						response.on('data',function(data){
+							let obj={};
+							obj.query=finaluri;
+							obj.service={domain:domain,port:port};
+							obj.profile=JSON.parse(data.toString('utf-8'));
+							res.write(JSON.stringify(obj));
+							res.end();
+						});
 					});
+					*/
+
+				}else if(req.url.method=='POST'){
 					
+					res.write("POST");
+					res.end();
+
+				}else if(req.url.method=='PUT'){
+			
+					res.write("PUT");
+					res.end();
+				}else if(req.url.method == 'DELETE'){
+					res.write("DELETE");
+					res.end();
+
 				}
 				
-
 			}
-		});
-	*/	
-	},1000);
+		}
+	}).listen(3001);
+
+
 }
 main();
 //module.exports
