@@ -529,13 +529,13 @@ function createServer(service,port){
 	generateWTM(1,"2018-09-06","2018-09-07",service[1],service[1],[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 	http.createServer(function(req,res){	
-		//console.log(Service);	
+		//console.log(Service);
+		let flag=false;
 		if(req.method == 'GET'){
-			let flag=true;
-			let cont=0;
+			let count=0;
 			Service.forEach(function(e){
+			
 				if(req.url.substring(1,e.length+1)== e){
-	
 					if(req.url.length==(e.length+1)){
 						console.log(req.url.substring(1,e.length+1));
 						res.writeHead(200,{'Content-Type':'text/html'});
@@ -549,17 +549,31 @@ function createServer(service,port){
 								res.end();
 							}
 						});
+						count--;
 					}
-	
-				}else{
-					if( ++cont == Service.length){
-						res.write("false");
-						res.end();
+					if(req.url== ("/"+e+"/properties/")){
+						
+						fs.readFile('profile/'+e+"/model/"+e+".json", function(err, data) {
+					    		if(!err){
+					    			flag=false;
+								res.write(data);
+				    				res.end();
+							}else{ 
+								res.write("false");
+								res.end();
+							}
+						});
+						count--;
 					}
-					
+						
 				}
+				count++;	
 			});
-			
+			if(count==Service.length){
+				res.write("false");
+				res.end();
+
+			}
 				
 		}
 	}).listen(port);
