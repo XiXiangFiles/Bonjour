@@ -532,8 +532,10 @@ function createServer(service,port){
 		//console.log(Service);	
 		if(req.method == 'GET'){
 			let flag=true;
+			let cont=0;
 			Service.forEach(function(e){
 				if(req.url.substring(1,e.length+1)== e){
+	
 					if(req.url.length==(e.length+1)){
 						console.log(req.url.substring(1,e.length+1));
 						res.writeHead(200,{'Content-Type':'text/html'});
@@ -547,14 +549,15 @@ function createServer(service,port){
 								res.end();
 							}
 						});
-						console.log("test= "+req.url.substring(e.length+1,req.url.length))
 					}
-					/*
-					if(req.url.substring(e,length+1,req.url.length)){
+	
+				}else{
+					if( ++cont == Service.length){
+						res.write("false");
+						res.end();
+					}
 					
-					}
-					*/
-				}	
+				}
 			});
 			
 				

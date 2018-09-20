@@ -254,10 +254,8 @@ function main(){
 									break;
 							}
 						});
-
 						let finaluri="http://"+domain+":"+port+profile;
-						//console.log(finaluri);
-
+						
 						request.get(finaluri).on('response',function(response){
 							response.on('data',function(data){
 								let obj={};
@@ -296,7 +294,7 @@ function main(){
 				let deurl=str.split('?');
 				let data = new Map();
 				let keyVal=deurl[1].split('&');
-				let domain,port,url,finaluri;
+				let domain,port,url,name,finaluri;
 
 				keyVal.forEach(function(e){
 					let dekeyVal=e.split('=');
@@ -309,20 +307,19 @@ function main(){
 						port=val;
 					else if(key == "type"){
 						url=val;
-					}
+					}else if(key == "name")
+						name=val;
 				}
 				
-				finaluri="http://"+domain+":"+port+"/"+url.replace("%2F","/");
-			
+				finaluri="http://"+domain+":"+port+"/"+name+"/"+url.replace("%2F","/");
 				console.log(finaluri);
 
 				if(req.method=='GET'){
 
+					
+					res.write(finaluri);
+					
 					request.get(finaluri).on('response',function(response){
-						response.on('error',function(err){
-							res.write("false");
-							res.end();		
-						})
 						response.on('data',function(data){
 							let obj={};
 							obj.query=finaluri;
@@ -333,8 +330,6 @@ function main(){
 						});
 					});
 					
-			
-
 				}else if(req.url.method=='POST'){
 					
 					res.write("POST");

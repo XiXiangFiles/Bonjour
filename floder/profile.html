@@ -221,11 +221,7 @@
 
 
 </div>
-<!--
-    <footer class="footer">
-        <span class="text-muted">Place sticky footer content here.</span>
-    </footer>
--->	
+
 </body>
 
 </html>
@@ -245,7 +241,12 @@
 			cache:false,
 			data:data,
 			success:function(res){
-				console.log(res);
+				let data=JSON.parse(res);
+
+				$('.link-result').empty();
+				$('.link-result').append(data.profile.toString());
+
+				console.log(data.profile);
 			}
 
 		});
