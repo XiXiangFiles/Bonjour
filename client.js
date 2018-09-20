@@ -296,7 +296,7 @@ function main(){
 				let deurl=str.split('?');
 				let data = new Map();
 				let keyVal=deurl[1].split('&');
-				let domain,port,url,finaluri;
+				let domain,port,name,url,finaluri;
 
 				keyVal.forEach(function(e){
 					let dekeyVal=e.split('=');
@@ -309,10 +309,12 @@ function main(){
 						port=val;
 					else if(key == "type"){
 						url=val;
+					}else if(key == 'name'){
+						name=val;
 					}
 				}
 				
-				finaluri="http://"+domain+":"+port+"/"+url.replace("%2F","/");
+				finaluri="http://"+domain+":"+port+"/"+name+'/'+url.replace("%2F","/");
 			
 				console.log(finaluri);
 
