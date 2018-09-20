@@ -566,16 +566,29 @@ function createServer(service,port){
 
 }
 function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
-	let Profile={};
+	function generateLink(name){
+		return str='Link:<'+name+'/>; rel="'+name+'"\n';
+	}
+	let Links="";
+	let profile={};
+	let model={};
 	let floder=['model','properties','actions','things','subscription','type','product','help','ui','custom'];
-	Profile.id=id;
-	Profile.name=name;
-	Profile.description=description;
-	Profile.createdAt=createdAt;
-	Profile.tags=tags;
-	Profile.customFields=customFields;
-	Profile.links=links;
+	profile.id=id;
+	profile.name=name;
+	profile.description=description;
+	profile.createdAt=createdAt;
+	profile.tags=tags;
+	profile.customFields=customFields;
+
+	model.id=id;
+	model.name=name;
+	model.description=description;
+	model.createdAt=createdAt;
+	model.tags=tags;
+	model.customFields=customFields;
+	model.links=links;
 	
+
 	fs.mkdir('profile',function(err){
 		console.log(err);
 	});
@@ -583,16 +596,24 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 		console.log(err);
 	});
 	floder.forEach(function(e){
+		Links+=generateLink(e);
 		fs.mkdir('profile/'+name+'/'+e,function(err){
 			console.log(err);
 		});
+		
 	});
-	fs.writeFile('profile/'+name+'/model/'+name+".json",JSON.stringify(Profile), function (err) {
+
+	fs.writeFile('profile/'+name+'/'+name+".json",Links+JSON.stringify(profile), function (err) {
   		if (!err)
   			console.log('Saved!');
 	});
 
-	return JSON.stringify(Profile);
+	fs.writeFile('profile/'+name+'/model/'+name+".json",JSON.stringify(model), function (err) {
+  		if (!err)
+  			console.log('Saved!');
+	});
+
+	return JSON.stringify(profile);
 }
 function main(){
 	
