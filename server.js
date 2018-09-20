@@ -529,16 +529,36 @@ function createServer(service,port){
 	generateWTM(1,"2018-09-06","2018-09-07",service[1],service[1],[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 	http.createServer(function(req,res){	
-		console.log(Service);	
-		Service.forEach(function(e){
-			if(req.url==("/"+e)){
-				res.writeHead(200,{'Content-Type':'text/html'});
-				fs.readFile('profile/'+e+".json", function(err, data) {
-				    res.write(data);
-				    res.end();
-			 });
-			}
-		});
+		//console.log(Service);	
+		if(req.method == 'GET'){
+			let flag=true;
+			Service.forEach(function(e){
+				if(req.url.substring(1,e.length+1)== e){
+					if(req.url.length==(e.length+1)){
+						console.log(req.url.substring(1,e.length+1));
+						res.writeHead(200,{'Content-Type':'text/html'});
+						fs.readFile('profile/'+e+".json", function(err, data) {
+					    		if(!err){
+					    			flag=false;
+								res.write(data);
+				    				res.end();
+							}else{ 
+								res.write("false");
+								res.end();
+							}
+						});
+						console.log("test= "+req.url.substring(e.length+1,req.url.length))
+					}
+					/*
+					if(req.url.substring(e,length+1,req.url.length)){
+					
+					}
+					*/
+				}	
+			});
+			
+				
+		}
 	}).listen(port);
 
 }
