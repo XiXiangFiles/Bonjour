@@ -539,7 +539,7 @@ function createServer(service,port){
 					if(req.url.length==(e.length+1)){
 						console.log(req.url.substring(1,e.length+1));
 						res.writeHead(200,{'Content-Type':'text/html'});
-						fs.readFile('profile/'+e+".json", function(err, data) {
+						fs.readFile('profile/'+e+"/"+e+".json", function(err, data) {
 					    		if(!err){
 					    			flag=false;
 								res.write(data);
@@ -567,6 +567,7 @@ function createServer(service,port){
 }
 function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
 	let Profile={};
+	let floder=['model','properties','actions','things','subscription','type','product','help','ui','custom'];
 	Profile.id=id;
 	Profile.name=name;
 	Profile.description=description;
@@ -574,10 +575,21 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 	Profile.tags=tags;
 	Profile.customFields=customFields;
 	Profile.links=links;
-
-	fs.writeFile('profile/'+name+".json",JSON.stringify(Profile), function (err) {
-  		//if (err) throw err;
-  		console.log('Saved!');
+	
+	fs.mkdir('profile',function(err){
+		console.log(err);
+	});
+	fs.mkdir('profile/'+name,function(err){
+		console.log(err);
+	});
+	floder.forEach(function(e){
+		fs.mkdir('profile/'+name+'/'+e,function(err){
+			console.log(err);
+		});
+	});
+	fs.writeFile('profile/'+name+'/'+name+".json",JSON.stringify(Profile), function (err) {
+  		if (!err)
+  			console.log('Saved!');
 	});
 
 	return JSON.stringify(Profile);
