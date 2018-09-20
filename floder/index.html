@@ -1,0 +1,424 @@
+<!--
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
++-   Author : Wang Zi Xiang                   +- 
++-   Unit   : Nccu cs 						  +- 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- 
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	
+	<meta charset="UTF-8">
+	<title>Nccu cs Wang test system</title>
+	<!-- <link rel="stylesheet" href="css/all.css"> -->
+	<link href="css/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/sticky-footer-navbar.css" rel="stylesheet">
+	<link href="css/form-validation.css" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="/js/DomElements.js"></script>
+	<!-- <link href="css/grid.css" rel="stylesheet"> -->
+	<style>
+	h2{
+		margin: 0.5em 0em 0em 0em;
+	}
+	.node circle {
+		cursor: pointer;
+		stroke: #3182bd;
+		stroke-width: 1.5px;
+	}
+
+	.node text {
+		font: 10px sans-serif;
+		pointer-events: none;
+		text-anchor: middle;
+	}
+
+	line.link {
+		fill: none;
+		stroke: #9ecae1;
+		stroke-width: 1.5px;
+	}
+	button{
+		background-color: #343a40;
+		border: #343a40;
+	}
+	#programNum{
+		    margin-left: 80%;
+    		border: solid red;
+	}
+	.saveWorkshop ,.clearWorkshop{
+		margin-left: 37%;
+    	margin-bottom: 5%;
+    	background-color: black;
+	}
+	svg{
+		    margin-left: 24%;
+	}
+	.group{
+		display: none;
+	}
+	.row {
+	  margin-bottom: 1rem;
+	}
+	.row .row {
+	  margin-top: 1rem;
+	  margin-bottom: 0;
+	}
+	[class*="col-"] {
+	  padding-top: 1rem;
+	  padding-bottom: 1rem;
+	  
+	}
+	.disposeJoin{
+		background-color: rgba(86, 61, 124, .15);
+	  	border: 1px solid rgba(86, 61, 124, .2);
+	}
+	.disposeJoinArea{
+		margin-left: 20%;
+		margin-bottom: 0%;
+	}
+	.ReqDonebtn , .Reqbtn{
+		background-color: rgba(230,226,235);
+	}
+	.sentReq{
+		background-color: rgb(230,226,235);
+	}
+	.agenda {  }
+
+/* Dates */
+	.agenda .agenda-date { width: 16%;; }
+	.agenda .agenda-date .dayofmonth {
+	  width: 40px;
+	  font-size: 36px;
+	  line-height: 36px;
+	  float: left;
+	  text-align: right;
+	  margin-right: 10px; 
+	}
+	.agenda .agenda-date .shortdate {
+	  font-size: 0.75em; 
+	}
+
+
+	/* Times */
+	.agenda .agenda-time {     width: 36%;} 
+
+
+	/* Events */
+	.agenda .agenda-events {  } 
+	.agenda .agenda-events .agenda-event {  } 
+	.workshop_btn{
+		background-color: #5599FF;
+		color:white;
+	}
+	.logo{
+		width: 2em;
+	}
+	.txt{
+		color:red;
+	}
+	@media (max-width: 767px) {
+	    
+	}
+	</style>
+</head>
+</head>
+<body>
+	<header>
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand logo" href="/index.html"><img class="logo" src="img/logo.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav mr-auto">
+           
+          </ul>
+          <form class="form-inline mt-2 mt-md-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+      </nav>
+    </header>
+
+	<div class="container">
+		<div class="picGroup"></div>
+		<div id="group" class="group">
+			<div class="row">
+	        <div class="col-md-8 order-md-1 registerForm">
+	          <h4 class="mb-3">Create New Group</h4>
+	          <div class="needs-validation" novalidate>
+
+				<div class="mb-3">
+	              <label for="username">Input New Group Name</label>
+	              <div class="input-group">
+	                <input type="text" class="form-control group_name" id="username" placeholder="" required>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  New Group Name is required.
+	                </div>
+	              </div>
+	            </div>
+	            <div class="mb-3">
+	              <label for="username">Input New Group Infomation</label>
+	              <div class="input-group">
+	                <input type="text" class="form-control group_info" id="username" placeholder="" required>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  New Group Infomation is required.
+	                </div>
+	              </div>
+	            </div>
+	            <hr class="mb-4">
+	            <button class="btn btn-primary btn-lg btn-block ins_btn">Create New Group</button>
+	          </div>
+	        </div>
+	      </div>
+
+		<div class="row">
+	        <div class="col-md-8 order-md-1 registerForm">
+	        <br><br>
+
+	          <h4 class="mb-3">Create New Workout</h4>
+	          <div class="needs-validation" novalidate>
+
+				<div class="mb-3">
+	              <label for="username">Choose Your Group</label>
+	              <div class="input-group">
+	              	<select name="" id="listGroup" class="form-control group_name "></select>
+	                <!-- <input type="text" class="form-control group_name" id="username" placeholder="" required> -->
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  New Group Name is required.
+	                </div>
+	              </div>
+	            </div>
+
+				<div class="mb-3">
+	              <label for="username">Input New Workout Name</label>
+	              <div class="input-group">
+	                <input type="text" class="form-control workshopInfo" id="username" placeholder="" required>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  New Group Name is required.
+	                </div>
+	              </div>
+	            </div>
+	            <div class="mb-3">
+	              <label for="username">Input New Workout Date</label>
+	              <div class="input-group">
+	                <input type="Date" class="form-control setDate" id="username" placeholder="" required>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  New Group Infomation is required.
+	                </div>
+	              </div>
+	            </div>
+				
+				<div class="row">
+	                  
+					<div class="col-md-6 mb-3">
+		                <label for="firstName">Min</label>
+		                <input type="text" class="form-control setMin" id="firstName" placeholder="" value="0" required>
+		                <div class="invalid-feedback">
+		                  the Min is required.
+		                </div>
+	              </div>
+	              <div class="col-md-6 mb-3">
+		                <label for="lastName">Sec</label>
+		                <span id= "programNum">P1</span>
+		                <input type="text" class="form-control setSec" id="lastName" placeholder="" value="0" required>
+		                <div class="invalid-feedback">
+		                  the Sec is required.
+		                </div>
+	              </div>
+				</div>
+				<div class="mb-3">
+	              <label for="username">Input Set</label>
+	              <div class="input-group">
+	                <input type="text" class="form-control setSet" id="username" value="1" placeholder="" required>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  The Set is required.
+	                </div>
+	              </div>
+	            </div>
+
+				<div class="mb-3">
+	              <label for="username">Input the Item Infomation</label>
+	              <div class="input-group">
+	                <textarea class="form-control itemInfo" id="" cols="30" rows="5"></textarea>
+	                <div class="invalid-feedback" style="width: 100%;">
+	                  The Item Infomation is required.
+	                </div>
+	              </div>
+	            </div>
+
+	            <hr class="mb-4">
+	            <button class="btn btn-primary btn-lg saveWorkshop">Save</button>
+				<button class="btn btn-primary btn-lg clearWorkshop">Clear</button>
+				<!-- <button class="btn btn-primary btn-lg sendWorkshop">Send Request</button> -->
+	            <button class="btn btn-primary btn-lg btn-block sendWorkshop">Create a New Workout</button>
+	          </div>
+	        </div>
+	    </div>
+
+		<div class="row disposeJoinArea">
+	        <div class="col-4 disposeJoin">New Requests</div>
+	        <div class="col-4 disposeJoin">Member</div>
+	        <!-- <div class="col-4 disposeJoin">.col-6</div> -->
+      	</div>
+      	<div id="appendlist"></div>
+      	<div class="row disposeJoinArea">
+	         <button class="btn btn-primary btn-lg sentReq col-4 ">Save</button>
+			 <button class="btn btn-primary btn-lg CancelReq col-4 ">Cancel</button>
+	        <!-- <div class="col-4 disposeJoin">.col-6</div> -->
+      	</div>
+	</div>
+	<div class="workshopArea">
+		<h2>mDNS/DNS-SD DEMO</h2>
+    <p class="lead">
+        
+    </p>
+    
+    <div class="alert alert-warning">
+        <h4>ALL of the resorce show at beneath table.</h4>
+        <p></p>
+    </div>
+
+    <hr />
+
+    <div class="agenda">
+        <div class="table-responsive">
+        	<h4 class="mb-3" id="tableTitle"></h4>
+            <table class="table table-condensed table-bordered">
+               <thead>
+               	<th>Instance</th>
+               	<th>Service</th>
+		<th>Profile <span class ="txt">and other TXTs</span></th>
+               	<th>Domain</th>
+               </thead>
+               <tbody class="serviceContent">
+	               			
+               </tbody>
+            </table>
+        </div>
+    </div>
+	</div>
+	
+
+
+</div>
+
+	
+<!--
+    <footer class="footer">
+        <span class="text-muted">Place sticky footer content here.</span>
+    </footer>
+-->
+	
+	<div class="content">
+
+		<div class="joinGroup"></div>
+		
+		<div class="adjustGroup">
+			<ul id="unconfirm" class="unconfirm"></ul><br>
+			<ul id="alreadyC" class="alreadyC"></ul><br>
+		</div>
+		<div>
+
+		</div>
+
+	</div>
+</body>
+
+</html>
+<script>
+	function scan(){
+		$.ajax({
+			url:"getServices",
+			method:"GET",
+			cache:false,
+			success:function(res){
+				
+				$('.serviceContent').empty();
+				let instance=new Set();
+				let rawspan=new Map();
+				let str="[";
+				str +=res;
+				str +="]";
+				let services=JSON.parse(str);
+				
+				services.forEach(function(e){
+					instance.add(e.instance);
+				});
+				
+				instance.forEach(function(e){
+					let temp=0;
+					services.forEach(function(srv){
+						if(srv.instance==e){
+							temp++;
+						}
+					});
+					rawspan.set(e,temp);
+				});
+				rawspan.forEach(function(val,key){
+					
+					function url(domain,port,profile){
+						let url="profile.html?domain="+domain+"&port="+port+"&profile="+profile;
+						return url;
+					}
+					let cnt=0;
+					let tr="";
+					let td="";
+					td+=add_td("","agenda-date active",val,key);
+					services.forEach(function(e){
+						//console.log(e);
+						if(key==e.instance){
+							let profile="";
+							let othertxt="<br/>";
+							if(e.TXT.length>0){
+								e.TXT.forEach(function(e){
+									if(e.substring(0,7)=="profile"){
+										let str=e.split("=");
+										profile=str[1];
+									}else if(e.length>0){
+										othertxt+=e;
+									}
+								});	
+							}
+							
+
+							if(cnt==0){
+								td+=add_td("","agenda-date active",undefined,e.service);
+								td+=add_td("","agenda-date active",undefined,add_a("","",url(e.domain,e.SRV.port,profile),profile)+add_span("","txt",othertxt));
+								td+=add_td("","agenda-date active",undefined,e.domain);
+								tr+=add_tr("","",td);	
+								
+								$('.serviceContent').append(tr);
+								td="";
+								tr="";
+							}
+							
+							if(cnt++>0){
+
+								td+=add_td("","agenda-date active",undefined,e.service);
+								td+=add_td("","agenda-date active",undefined,add_a("","",url(e.domain,e.SRV.port,profile),profile)+add_span("","txt",othertxt));	
+								td+=add_td("","agenda-date active",undefined,e.domain);
+								tr+=add_tr("","",td);
+								$('.serviceContent').append(tr);
+								td="";
+								tr="";
+								cnt=0;
+							}
+						}
+					});
+					//console.log("tr= "+tr);
+				});
+			}
+		})
+
+	
+	}
+	scan();
+	setInterval(function(){
+		scan();	
+	},1000);	
+	
+</script>
