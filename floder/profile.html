@@ -244,9 +244,14 @@
 				let data=JSON.parse(res);
 
 				$('.link-result').empty();
-				$('.link-result').append(data.profile.toString());
 
-				console.log(data.profile);
+				if( data.profile== false)
+					$('.link-result').append(data.profile.toString());
+				else 
+					$('.link-result').append(res);
+
+					
+				console.log(res);
 			}
 
 		});
@@ -260,12 +265,15 @@
 		cache:false,
 		success:function(res){
 			console.log(res);
+			
 			let result=JSON.parse(res);
 			$('.query').append(result.query);
 			let id=add_label("","col-sm-2 control-label","ID");
 			id +=add_label("","col-sm-10 form-control profilecontent",result.profile.id);
 			let name=add_label("","col-sm-2 control-label","NAME");
 			name +=add_label("","col-sm-10 form-control profilecontent",result.profile.name);
+			let createdAt=add_label("","col-sm-2 control-label","createdAt");
+			createdAt +=add_label("","col-sm-10 form-control profilecontent",result.profile.createdAt);
 			let description=add_label("","col-sm-2 control-label","Description");
 			description +=add_label("","col-sm-10 form-control profilecontent",result.profile.description);
 			let tags=add_label("","col-sm-2 control-label","Tags");
@@ -273,16 +281,27 @@
 			let customFields=add_label("","col-sm-2 control-label","customFields");
 			customFields +=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.profile.customFields));
 			let links=add_label("","col-sm-2 control-label","Links");
-
+			let linksbtn="";
 
 			$('.profile').append(id);
 			$('.profile').append(name);
+			$('.profile').append(createdAt);
 			$('.profile').append(description);
 			$('.profile').append(tags);
 			$('.profile').append(customFields);
 			$('.profile').append(links);
 
+			result.links.forEach(function(e){
+				let str=e.title.split("=");
+				if(str[1]!=undefined){
+					console.log(e.title);
+					linksbtn+=add_button("","btn btn-info",str[1],"queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+e.link+"','GET')","rel:"+str[1].replace('"',""))
+				}
+				// 
+			});
+			$('.box-footer').append(linksbtn);
 
+		/*
 			let linksbtn=add_button("","btn btn-info","Model","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.model.link+"','GET')",result.profile.links.model.title);
 			linksbtn+=add_button("","btn btn-info","Properties","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.properties.link+"','GET')",result.profile.links.properties.title);
 			linksbtn+=add_button("","btn btn-info","Action","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.actions.link+"','GET')",result.profile.links.actions.title);
@@ -291,7 +310,7 @@
 			linksbtn+=add_button("","btn btn-info","Type","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.type.link+"','GET')",result.profile.links.type.title);
 			linksbtn+=add_button("","btn btn-info","Product","queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+result.profile.links.product.link+"','GET')",result.profile.links.product.title);
 			$('.box-footer').append(linksbtn);
-		
+		*/
 		}
 	});		
 	
