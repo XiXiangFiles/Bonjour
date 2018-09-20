@@ -260,10 +260,55 @@ function main(){
 
 						request.get(finaluri).on('response',function(response){
 							response.on('data',function(data){
+								function parseLink(title,url){
+									let obj={};
+									obj.title=title;
+									obj.link=url;
+									return obj;
+								}
+								let arr=[];
 								let obj={};
+								let content=data.toString('utf-8');
+								let strLink="";
+								let strContent="";
+								let flag=false;
+								for(let i=0;i<content.length ; i++){
+									
+
+									if(content[i]=="{")
+										flag=true;
+									if(flag)
+										strContent+=content[i];
+									else 
+										strLink+=content[i];
+								}
+
+
+								let strsplit=strLink.split('\n');
+								strsplit.forEach(function(e){
+									let str=e.split(";");
+									let flag=false;
+									let url="";
+									let title="";
+									let Linksplit2=str[0].split(":");
+									try{
+										url=Linksplit2[1].replace('<',"");
+										url=url.replace(">","");
+										console.log(url)
+										arr.push(parseLink(str[1],url))
+										
+									
+									}catch(e){
+										
+									}
+									
+								});
+
+
 								obj.query=finaluri;
 								obj.service={domain:domain,port:port};
-								obj.profile=JSON.parse(data.toString('utf-8'));
+								obj.profile=JSON.parse(strContent);
+								obj.links=arr;
 								res.write(JSON.stringify(obj));
 								res.end();
 							});

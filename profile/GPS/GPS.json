@@ -1,0 +1,11 @@
+Link:<model/>; rel="model"
+Link:<properties/>; rel="properties"
+Link:<actions/>; rel="actions"
+Link:<things/>; rel="things"
+Link:<subscription/>; rel="subscription"
+Link:<type/>; rel="type"
+Link:<product/>; rel="product"
+Link:<help/>; rel="help"
+Link:<ui/>; rel="ui"
+Link:<custom/>; rel="custom"
+{"id":0,"name":"GPS","description":"GPS","createdAt":"2018-09-06","tags":[{"tag":"0"}],"customFields":{"sersor":"GPS Sersor","type":"GPS"}}

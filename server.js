@@ -539,7 +539,7 @@ function createServer(service,port){
 					if(req.url.length==(e.length+1)){
 						console.log(req.url.substring(1,e.length+1));
 						res.writeHead(200,{'Content-Type':'text/html'});
-						fs.readFile('profile/'+e+"/model/"+e+".json", function(err, data) {
+						fs.readFile('profile/'+e+"/"+e+".json", function(err, data) {
 					    		if(!err){
 					    			flag=false;
 								res.write(data);
@@ -551,7 +551,7 @@ function createServer(service,port){
 						});
 						count--;
 					}
-					if(req.url== ("/"+e+"/properties/")){
+					if(req.url== ("/"+e+"/model/")){
 						
 						fs.readFile('profile/'+e+"/model/"+e+".json", function(err, data) {
 					    		if(!err){
