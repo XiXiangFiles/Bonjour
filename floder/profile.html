@@ -137,7 +137,7 @@
 	.link-result{
 		background-color:#343a4024;
 		height:100%;
-		padding : 1%
+		padding: 2% 2% 0% 3%;
 	}	
 	button{
 		margin-right:1%;	
@@ -218,8 +218,6 @@
 	    </div>
 	</div>
 	
-
-
 </div>
 
 </body>
@@ -232,8 +230,8 @@
 		data.port=port;
 		data.name=name;
 		data.type=type;
-		console.log(data);
-		console.log("method= "+ method)
+		// console.log(data);
+		// console.log("method= "+ method)
 		
 		$.ajax({
 			url:"query",
@@ -248,10 +246,9 @@
 				if( data.profile== false)
 					$('.link-result').append(data.profile.toString());
 				else 
-					$('.link-result').append(res);
+					$('.link-result').append(JSON.stringify(data.profile));
 
-					
-				console.log(res);
+
 			}
 
 		});
@@ -267,7 +264,12 @@
 			console.log(res);
 			
 			let result=JSON.parse(res);
+			console.log(result.raw);
+			// let raw=result.raw;
+			// raw.replace("\n","<br/>");
+
 			$('.query').append(result.query);
+			// $('.query').append(add_p(" "," ",raw));
 			let id=add_label("","col-sm-2 control-label","ID");
 			id +=add_label("","col-sm-10 form-control profilecontent",result.profile.id);
 			let name=add_label("","col-sm-2 control-label","NAME");
@@ -294,10 +296,8 @@
 			result.links.forEach(function(e){
 				let str=e.title.split("=");
 				if(str[1]!=undefined){
-					console.log(e.title);
 					linksbtn+=add_button("","btn btn-info",str[1],"queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+e.link+"','GET')","rel:"+str[1].replace('"',""))
 				}
-				// 
 			});
 			$('.box-footer').append(linksbtn);
 

@@ -307,6 +307,7 @@ function main(){
 
 								obj.query=finaluri;
 								obj.service={domain:domain,port:port};
+								obj.raw=content;
 								obj.profile=JSON.parse(strContent);
 								obj.links=arr;
 								res.write(JSON.stringify(obj));
