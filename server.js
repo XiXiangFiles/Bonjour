@@ -591,6 +591,7 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 	profile.name=name;
 	profile.description=description;
 	profile.createdAt=createdAt;
+	profile.updateAt=updateAt;
 	profile.tags=tags;
 	profile.customFields=customFields;
 
@@ -598,6 +599,7 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 	model.name=name;
 	model.description=description;
 	model.createdAt=createdAt;
+	model.updateAt=updateAt;
 	model.tags=tags;
 	model.customFields=customFields;
 	model.links=links;
@@ -639,7 +641,6 @@ function main(){
 	Service.set("Temperature",8080);
 	Service.set("GPS",8080);
 	
-
 
 	txt.set("Temperature","profile=/Temperature;info=testmulti-values;test=test");
 	txt.set("GPS","profile=/GPS");
