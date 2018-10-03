@@ -623,7 +623,7 @@ function initWTM(id,createdAt, updateAt, name,description , tags , customFields,
 
 	return JSON.stringify(profile);
 }
-function generateWTMofVal(name,floder,id,description,content){
+function generateWTMofVal(name,floder,content){
 		let obj={};
 		obj.id=id;
 		obj.description=description;
@@ -633,6 +633,12 @@ function generateWTMofVal(name,floder,id,description,content){
   		if (!err)
   			console.log('Saved!');
 	});
+
+}
+function gpsSensor(){
+
+}
+function temperatureSensor(){
 
 }
 function main(){
@@ -646,15 +652,20 @@ function main(){
 	Service.set(serviceName[0],8080);
 	Service.set(serviceName[1],8080);
 	
-
+	/*
+		set up txt packet, it use ';' to split the string.
+		Note : txt.set(Service name,TXT descriptions)
+	*/
 	txt.set(serviceName[0],"profile=/"+serviceName[0]+";info=testmulti-values;test=test");
 	txt.set(serviceName[1],"profile=/"+serviceName[1]);
 	
 
-	serverStart(Instance,Service,txt,domain,10);
-	createServer([serviceName[0],serviceName[1]],8080);
+	serverStart(Instance,Service,txt,domain,10); //serverStart(Instance,Service,txt,domain,ttl)
+	createServer([serviceName[0],serviceName[1]],8080);// createServer(service,port)
 
-
+	/*
+		"function properties(link,title)" used to create the initial Link will be used it in which server reply it when client query {WT} . 
+	*/
 	function properties(link,title){
 		let obj={};
 		obj.link=link;
@@ -673,7 +684,6 @@ function main(){
 		
 	initWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
 	initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
-	
 
 }
 main();
