@@ -508,26 +508,8 @@ function gererateLinks(model,properties,actions,things,subscriptions,type,produc
 	return obj;
 }
 function createServer(service,port){
-	function properties(link,title){
-		let obj={};
-		obj.link=link;
-		obj.title=title;
-		return obj;
-	}
 
 	const Service=service;	
-	let customField={};
-	let customField2={};
-
-	customField.sersor="GPS Sersor";
-	customField.type="GPS";
-
-	customField2.sersor="Temperature Sersor";
-	customField2.type="DH11";
-		
-	generateWTM(0,"2018-09-06","2018-09-07",service[0],service[0],[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
-	generateWTM(1,"2018-09-06","2018-09-07",service[1],service[1],[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
-	
 	http.createServer(function(req,res){	
 		//console.log(Service);
 		let flag=false;
@@ -593,14 +575,35 @@ function createServer(service,port){
 	}).listen(port);
 
 }
+function init(name ,floder){
+
+	fs.mkdir('profile/'+name,function(err){
+		
+	});
+	floder.forEach(function(e){
+		fs.mkdir('profile/'+name+'/'+e,function(err){
+			
+		});
+	});
+
+}
+
 function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
+
 	function generateLink(name){
 		return str='Link:<'+name+'/>; rel="'+name+'"\n';
 	}
+
 	let Links="";
 	let profile={};
 	let model={};
 	let floder=['model','properties','actions','things','subscription','type','product','help','ui','custom'];
+	fs.mkdir('profile',function(err){		
+	
+	});
+
+	init(name,floder);//generate the floder
+
 	profile.id=id;
 	profile.name=name;
 	profile.description=description;
@@ -608,29 +611,9 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 	profile.updateAt=updateAt;
 	profile.tags=tags;
 	profile.customFields=customFields;
-
-	model.id=id;
-	model.name=name;
-	model.description=description;
-	model.createdAt=createdAt;
-	model.updateAt=updateAt;
-	model.tags=tags;
-	model.customFields=customFields;
-	model.links=links;
 	
-
-	fs.mkdir('profile',function(err){
-		console.log(err);
-	});
-	fs.mkdir('profile/'+name,function(err){
-		console.log(err);
-	});
 	floder.forEach(function(e){
 		Links+=generateLink(e);
-		fs.mkdir('profile/'+name+'/'+e,function(err){
-			console.log(err);
-		});
-		
 	});
 
 	fs.writeFile('profile/'+name+'/'+name+".json",Links+JSON.stringify(profile), function (err) {
@@ -638,15 +621,19 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
   			console.log('Saved!');
 	});
 
-	fs.writeFile('profile/'+name+'/model/'+name+".json",JSON.stringify(model), function (err) {
+	return JSON.stringify(profile);
+}
+function generateWTMofVal(name,floder,id,description,content){
+		let obj={};
+		obj.id=id;
+		obj.description=description;
+		obj.content=content;
+
+		fs.writeFile('profile/'+name+'/'+floder+'/'+name+".json",JSON.stringify(obj), function (err) {
   		if (!err)
   			console.log('Saved!');
 	});
 
-	return JSON.stringify(profile);
-}
-function generateWTMofVal(){
-	
 }
 function main(){
 	
@@ -655,16 +642,38 @@ function main(){
 	let domain="testdomain";
 
 	const Instance="Percomlab";
-	Service.set("Temperature",8080);
-	Service.set("GPS",8080);
+	let serviceName=['testResource1','testResource2']
+	Service.set(serviceName[0],8080);
+	Service.set(serviceName[1],8080);
 	
 
-	txt.set("Temperature","profile=/Temperature;info=testmulti-values;test=test");
-	txt.set("GPS","profile=/GPS");
+	txt.set(serviceName[0],"profile=/"+serviceName[0]+";info=testmulti-values;test=test");
+	txt.set(serviceName[1],"profile=/"+serviceName[1]);
 	
+
 	serverStart(Instance,Service,txt,domain,10);
+	createServer([serviceName[0],serviceName[1]],8080);
 
-	createServer(["GPS","Temperature"],8080);
+
+	function properties(link,title){
+		let obj={};
+		obj.link=link;
+		obj.title=title;
+		return obj;
+	}
+
+	let customField={};
+	let customField2={};
+
+	customField.sensor="GPS sensor";
+	customField.type="1568-1703-ND";
+
+	customField2.sensor="Temperature sensor";
+	customField2.type="DH11";
+		
+	generateWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
+	generateWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
+	
 
 }
 main();
