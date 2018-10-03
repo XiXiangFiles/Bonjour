@@ -565,6 +565,20 @@ function createServer(service,port){
 						});
 						count--;
 					}
+					if(req.url== ("/"+e+"/properties/")){
+						
+						fs.readFile('profile/'+e+"/properties/"+e+".json", function(err, data) {
+					    		if(!err){
+					    			flag=false;
+								res.write(data);
+				    				res.end();
+							}else{ 
+								res.write("false");
+								res.end();
+							}
+						});
+						count--;
+					}
 						
 				}
 				count++;	
@@ -630,6 +644,9 @@ function generateWTM(id,createdAt, updateAt, name,description , tags , customFie
 	});
 
 	return JSON.stringify(profile);
+}
+function generateWTMofVal(){
+	
 }
 function main(){
 	
