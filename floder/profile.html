@@ -245,8 +245,66 @@
 
 				if( data.profile== false)
 					$('.link-result').append(data.profile.toString());
-				else 
-					$('.link-result').append(JSON.stringify(data.profile));
+				else {
+					function content(type,content){
+						let res;
+						switch(type){
+							case 'model/':
+								console.log("content= "+content);
+								let result=JSON.parse(content);
+								res=add_label("","col-sm-2 control-label","ID");
+								res+=add_label("","col-sm-10 form-control profilecontent",result.id);
+								res+=add_label("","col-sm-2 control-label","NAME");
+								res+=add_label("","col-sm-10 form-control profilecontent",result.name);
+								res+=add_label("","col-sm-2 control-label","createdAt");
+								res+=add_label("","col-sm-10 form-control profilecontent",result.createdAt);
+								res+=add_label("","col-sm-2 control-label","updateAt");
+								res+=add_label("","col-sm-10 form-control profilecontent",result.updateAt);
+								res+=add_label("","col-sm-2 control-label","Description");
+								res+=add_label("","col-sm-10 form-control profilecontent",result.description);
+								res+=add_label("","col-sm-2 control-label","Tags");
+								res+=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.tags));
+								res+=add_label("","col-sm-2 control-label","customFields");
+								res+=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.customFields));
+								res+=add_label("","col-sm-2 control-label","Links");
+								res+="</br>";
+								for(let i=0;i<Object.keys(result.links).length;i++){
+									let j=0;
+									Object.entries(result.links)[i].forEach(function(e){
+										if(j++ % 2 == 0){
+											console.log(e);
+											res+=add_button("","btn btn-info",e);
+										}
+										// else
+											// res+=add_button("","btn btn-info",e);
+									});
+								}	
+								
+								
+							
+							break;
+							case 'properties/':
+							break;
+							case 'actions/':	
+							break;
+							case 'things/':
+							break;
+							case 'subscription/':	
+							break;
+							case 'type/':
+							break;
+							case 'help/':	
+							break;
+							case 'ui/':
+							break;
+							case 'custom/':
+							break;
+						}
+						return res;
+					}
+
+					$('.link-result').append(content(type,JSON.stringify(data.profile)));
+				}
 
 
 			}
@@ -276,6 +334,8 @@
 			name +=add_label("","col-sm-10 form-control profilecontent",result.profile.name);
 			let createdAt=add_label("","col-sm-2 control-label","createdAt");
 			createdAt +=add_label("","col-sm-10 form-control profilecontent",result.profile.createdAt);
+			let updateAt=add_label("","col-sm-2 control-label","updateAt");
+			updateAt +=add_label("","col-sm-10 form-control profilecontent",result.profile.updateAt);
 			let description=add_label("","col-sm-2 control-label","Description");
 			description +=add_label("","col-sm-10 form-control profilecontent",result.profile.description);
 			let tags=add_label("","col-sm-2 control-label","Tags");
@@ -288,6 +348,7 @@
 			$('.profile').append(id);
 			$('.profile').append(name);
 			$('.profile').append(createdAt);
+			$('.profile').append(updateAt);
 			$('.profile').append(description);
 			$('.profile').append(tags);
 			$('.profile').append(customFields);
@@ -296,7 +357,7 @@
 			result.links.forEach(function(e){
 				let str=e.title.split("=");
 				if(str[1]!=undefined){
-					linksbtn+=add_button("","btn btn-info",str[1],"queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+e.link+"','GET')","rel:"+str[1].replace('"',""))
+					linksbtn+=add_button("","btn btn-info",str[1],"queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+e.link+"','GET')","rel:"+str[1].replace('"',""));
 				}
 			});
 			$('.box-footer').append(linksbtn);
