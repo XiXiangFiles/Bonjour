@@ -588,7 +588,7 @@ function init(name ,floder){
 
 }
 
-function generateWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
+function initWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
 
 	function generateLink(name){
 		return str='Link:<'+name+'/>; rel="'+name+'"\n';
@@ -665,14 +665,14 @@ function main(){
 	let customField={};
 	let customField2={};
 
-	customField.sensor="GPS sensor";
+	customField.sensor="GPS ensor";
 	customField.type="1568-1703-ND";
 
 	customField2.sensor="Temperature sensor";
 	customField2.type="DH11";
 		
-	generateWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
-	generateWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
+	initWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
+	initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 
 }
