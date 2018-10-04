@@ -1,6 +1,7 @@
 const mdns=require('multicast-dns')();
 const http=require('http');
 const fs=require('fs');
+const datetime=require('node-datetime');
 class dnssd{
 	
 	generateANY(Instance,Service){
@@ -623,23 +624,31 @@ function initWTM(id,createdAt, updateAt, name,description , tags , customFields,
 
 	return JSON.stringify(profile);
 }
-function generateWTMofVal(name,floder,content){
-		let obj={};
-		obj.id=id;
-		obj.description=description;
-		obj.content=content;
-
-		fs.writeFile('profile/'+name+'/'+floder+'/'+name+".json",JSON.stringify(obj), function (err) {
-  		if (!err)
-  			console.log('Saved!');
+function generateWTMofVal(serviceName,floder,content){
+	
+	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){});
+	console.log('profile/'+serviceName+'/'+floder+'/');
+	
+	//console.log(JSON.stringify(content));
+	fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
+ 		if (!err)
+  			console.log('WTM val is saved!');
 	});
-
 }
 function gpsSensor(){
 
-}
-function temperatureSensor(){
+	let temperature=Math.floor((Math.random() * 20) + 1);
 
+}
+function temperatureSensor(serviceName,id,name){
+	
+	let dt = datetime.create();
+	let obj={};
+	obj.id=id;
+	obj.name;
+	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
+	console.log(obj);
+	generateWTMofVal(serviceName,'properties/'+id,obj);
 }
 function main(){
 	
@@ -683,7 +692,9 @@ function main(){
 	customField2.type="DH11";
 		
 	initWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
-	initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
-
+	// initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
+	
+	// function temperatureSensor(serviceName,id,name)
+	temperatureSensor(serviceName[1],"temperature","DEMO 1");
 }
 main();
