@@ -4,8 +4,10 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "directory-tree": "^2.1.0",
     "dns-txt": "^2.0.2",
     "multicast-dns": "^7.0.0",
+    "node-datetime": "^2.1.2",
     "os": "^0.1.1",
     "request": "^2.88.0",
     "threads": "^0.12.0"
