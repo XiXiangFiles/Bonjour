@@ -650,6 +650,62 @@ function temperatureSensor(serviceName,id,name){
 	console.log(obj);
 	generateWTMofVal(serviceName,'properties/'+id,obj);
 }
+
+function generateWTM(serviceName,domain){
+
+	const dirTree=require('directory-tree');
+	let properties=[];
+	let propertiesContent=[];
+	let actions=[];
+	let actionsContent=[];
+	let things=[];
+	let thingsContent=[];
+	let subscriptions=[];
+	let subscriptionsContent=[];
+
+	
+	const tree = dirTree('profile/'+serviceName,{ extensions: /.json$/ },function(path,item){
+		let str=path.path.split('/');
+		if(str.length > 3){
+			switch (str[2]){
+				case 'properties':
+					properties.push(path.path);
+				break;
+
+				case 'actions':
+					actions.push(path.path);
+				break;
+
+				case 'things':
+					things.push(path.path);
+				break;
+s
+				case 'subscriptions':
+					subscriptions.push(path.path);
+				break;
+
+			}
+		}
+	});
+
+	if(properties.length >0){
+		for(let i=0; i<properties.length ; i++){
+			fs.readFile(properties[i],'utf8',function(err,data){
+				propertiesContent.push(JSON.parse(data));
+				
+				if(propertiesContent.length == properties.length){
+
+					let link="Link: <http://"+domain+"/properties>;rel=\"type\"\n";
+					fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",link+JSON.stringify(propertiesContent), function (err) {
+				 		if (!err)
+				  			console.log('WTM properties val is saved!');
+					});
+				}
+			});
+		}	
+	}
+}
+
 function main(){
 	
 	let Service= new Map();
@@ -696,5 +752,7 @@ function main(){
 	
 	// function temperatureSensor(serviceName,id,name)
 	temperatureSensor(serviceName[1],"temperature","DEMO 1");
+	temperatureSensor(serviceName[1],"temperature2","DEMO 2");
+	generateWTM(serviceName[1],domain);
 }
 main();
