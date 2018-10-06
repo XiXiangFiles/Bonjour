@@ -372,10 +372,12 @@ function main(){
 							res.end();		
 						})
 						response.on('data',function(data){
+
 							let obj={};
 							obj.query=finaluri;
 							obj.service={domain:domain,port:port};
-							obj.profile=JSON.parse(data.toString('utf-8'));
+							
+							obj.profile=data.toString('utf8');
 							res.write(JSON.stringify(obj));
 							res.end();
 						});

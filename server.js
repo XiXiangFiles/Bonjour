@@ -537,10 +537,10 @@ function createServer(service,port){
 					if(req.url== ("/"+e+"/model/")){
 						
 						fs.readFile('profile/'+e+"/model/"+e+".json", function(err, data) {
-					    		if(!err){
-					    			flag=false;
+					    	if(!err){
+					    		flag=false;
 								res.write(data);
-				    				res.end();
+				    			res.end();
 							}else{ 
 								res.write("false");
 								res.end();
@@ -551,10 +551,10 @@ function createServer(service,port){
 					if(req.url== ("/"+e+"/properties/")){
 						
 						fs.readFile('profile/'+e+"/properties/"+e+".json", function(err, data) {
-					    		if(!err){
-					    			flag=false;
+					    	if(!err){
+					    		flag=false;
 								res.write(data);
-				    				res.end();
+				    			res.end();
 							}else{ 
 								res.write("false");
 								res.end();
@@ -665,8 +665,10 @@ function generateWTM(serviceName,domain){
 
 	
 	const tree = dirTree('profile/'+serviceName,{ extensions: /.json$/ },function(path,item){
+
 		let str=path.path.split('/');
-		if(str.length > 3){
+		
+		if(str.length > 4){
 			switch (str[2]){
 				case 'properties':
 					properties.push(path.path);
@@ -704,6 +706,7 @@ s
 			});
 		}	
 	}
+
 }
 
 function main(){
@@ -725,7 +728,7 @@ function main(){
 	txt.set(serviceName[1],"profile=/"+serviceName[1]);
 	
 
-	serverStart(Instance,Service,txt,domain,10); //serverStart(Instance,Service,txt,domain,ttl)
+	serverStart(Instance,Service,txt,domain,120); //serverStart(Instance,Service,txt,domain,ttl)
 	createServer([serviceName[0],serviceName[1]],8080);// createServer(service,port)
 
 	/*
