@@ -640,6 +640,7 @@ function gpsSensor(){
 	let temperature=Math.floor((Math.random() * 20) + 1);
 
 }
+
 function temperatureSensor(serviceName,id,name){
 	
 	let dt = datetime.create();
@@ -650,6 +651,8 @@ function temperatureSensor(serviceName,id,name){
 	console.log(obj);
 	generateWTMofVal(serviceName,'properties/'+id,obj);
 }
+
+
 
 function generateWTM(serviceName,domain){
 
@@ -708,6 +711,48 @@ s
 	}
 
 }
+function discribeAction(serviceName,doamin,actions){
+
+	let res=[];
+	let links=`Link:<http://${doamin}/${serviceName}/actions>;rel="type"\n`;
+	actions.forEach(function(val,key){
+		let obj={};
+		obj.id=key;
+		obj.name=key;
+		res.push(obj);
+	});
+	fs.mkdir(`profile/${serviceName}/actions`,function(err){
+		fs.writeFile('profile/'+serviceName+'/actions/'+serviceName+".json",links+JSON.stringify(res), function (err) {
+			if (!err)
+				console.log('WTM actions val is saved!');
+		});
+	});
+	
+	return JSON.stringify(res);
+
+}
+
+function demoActions(serviceName,floder,id,cmd){
+	let dt = datetime.create();
+	switch(cmd){
+		case 'create':
+
+			let obj={};
+			obj.id=id;
+			obj.value="none";
+			obj.status="init";
+			obj.timestamp=dt.format('Y-m-d H:M:S');
+			fs.mkdir(`profile/${serviceName}/actions/${floder}`,function(err){
+				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err)
+					  	console.log(`WTM actions ${floder} val is saved!`);
+				});
+			});
+			
+
+		break;
+	}
+}
 
 function main(){
 	
@@ -750,12 +795,20 @@ function main(){
 	customField2.sensor="Temperature sensor";
 	customField2.type="DH11";
 		
-	initWTM(0,"2018-09-06","2018-09-07","testResource2","This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
+	initWTM(0,"2018-09-06","2018-09-07",serviceName[1],"This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
 	// initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 	// function temperatureSensor(serviceName,id,name)
 	temperatureSensor(serviceName[1],"temperature","DEMO 1");
 	temperatureSensor(serviceName[1],"temperature2","DEMO 2");
 	generateWTM(serviceName[1],domain);
+
+	let actions=new Map();
+	actions.set("Demo_actions","this is a sample to demon acticons");
+	// discribeAction(serviceName,doamin,actions)
+	discribeAction(serviceName[1],domain,actions);
+	// demoActions(serviceName,floder,id,cmd)
+	demoActions(serviceName[1],"Demo_actions","demo1","create");
 }
+
 main();
