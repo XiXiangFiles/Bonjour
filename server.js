@@ -562,6 +562,20 @@ function createServer(service,port){
 						});
 						count--;
 					}
+					if(req.url== ("/"+e+"/actions/")){
+						
+						fs.readFile(`profile/${e}/properties/${e}.json`, function(err, data) {
+					    	if(!err){
+					    		flag=false;
+								res.write(data);
+				    			res.end();
+							}else{ 
+								res.write("false");
+								res.end();
+							}
+						});
+						count--;
+					}
 						
 				}
 				count++;	
@@ -579,13 +593,13 @@ function createServer(service,port){
 function init(name ,floder){
 
 	fs.mkdir('profile/'+name,function(err){
-		
-	});
-	floder.forEach(function(e){
-		fs.mkdir('profile/'+name+'/'+e,function(err){
-			
+		floder.forEach(function(e){
+			fs.mkdir('profile/'+name+'/'+e,function(err){
+				
+			});
 		});
 	});
+	
 
 }
 
@@ -626,14 +640,14 @@ function initWTM(id,createdAt, updateAt, name,description , tags , customFields,
 }
 function generateWTMofVal(serviceName,floder,content){
 	
-	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){});
-	console.log('profile/'+serviceName+'/'+floder+'/');
-	
-	//console.log(JSON.stringify(content));
-	fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
- 		if (!err)
-  			console.log('WTM val is saved!');
+	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
+		fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
+	 		if (!err)
+	  			console.log('WTM val is saved!');
+		});
 	});
+	// console.log('profile/'+serviceName+'/'+floder+'/');
+	
 }
 function gpsSensor(){
 
@@ -700,7 +714,8 @@ s
 				
 				if(propertiesContent.length == properties.length){
 
-					let link="Link: <http://"+domain+"/properties>;rel=\"type\"\n";
+					let link=`Link: <http://${domain}/${serviceName}/properties/>;rel="type"\n`;
+					// let link="Link: <http://"+domain+"/properties>;rel=\"type\"\n";
 					fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",link+JSON.stringify(propertiesContent), function (err) {
 				 		if (!err)
 				  			console.log('WTM properties val is saved!');
@@ -795,18 +810,18 @@ function main(){
 	customField2.sensor="Temperature sensor";
 	customField2.type="DH11";
 		
-	initWTM(0,"2018-09-06","2018-09-07",serviceName[1],"This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
-	// initWTM(1,"2018-09-06","2018-09-07","testResource1","this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
+	initWTM(0,"2018-09-06","2018-09-07",serviceName[0],"This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
+	initWTM(1,"2018-09-06","2018-09-07",serviceName[1],"this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 	// function temperatureSensor(serviceName,id,name)
 	temperatureSensor(serviceName[1],"temperature","DEMO 1");
 	temperatureSensor(serviceName[1],"temperature2","DEMO 2");
-	generateWTM(serviceName[1],domain);
+	generateWTM(serviceName[1],`${domain}.local:8080`);
 
 	let actions=new Map();
 	actions.set("Demo_actions","this is a sample to demon acticons");
 	// discribeAction(serviceName,doamin,actions)
-	discribeAction(serviceName[1],domain,actions);
+	discribeAction(serviceName[1],`${domain}.local:8080`,actions);
 	// demoActions(serviceName,floder,id,cmd)
 	demoActions(serviceName[1],"Demo_actions","demo1","create");
 }

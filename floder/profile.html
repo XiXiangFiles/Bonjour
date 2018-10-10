@@ -239,6 +239,7 @@
 			cache:false,
 			data:data,
 			success:function(res){
+
 				let data=JSON.parse(res);
 
 				$('.link-result').empty();
@@ -247,7 +248,7 @@
 					$('.link-result').append(data.profile.toString());
 				else {
 					function content(type,content){
-						let res;
+						let res="";
 						switch(type){
 							case 'model/':
 								console.log("content= "+content);
@@ -275,16 +276,19 @@
 											console.log(e);
 											res+=add_button("","btn btn-info",e);
 										}
-										// else
-											// res+=add_button("","btn btn-info",e);
 									});
 								}	
 								
-								
-							
 							break;
 							case 'properties/':
-								res=content;
+								
+								let str=content.split("\n");
+								let description=JSON.parse(str[1]);
+								console.log("properties= "+content);
+								// description.forEach(function(e){
+								// 	res+=`${e.id}</br>`;
+								// });
+								res=str[1];
 							break;
 							case 'actions/':	
 								res=content;
@@ -311,7 +315,7 @@
 						return res;
 					}
 
-					$('.link-result').append(content(type,JSON.stringify(data.profile)));
+					$('.link-result').append(content(type,data.profile));
 				}
 
 
