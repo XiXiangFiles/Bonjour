@@ -72,3 +72,7 @@ function add_label(Id,Class,Content){
 	let tag="<label "+"id= "+"\""+Id+"\""+" class="+"\""+Class+"\">"+Content+"</label>";
 	return tag;
 }
+function add_input(Id,Class,type,val){
+	let tag=`<input id="${Id}" class="${Class}" type= "${type}" value="${val}">`;
+	return tag;
+}
