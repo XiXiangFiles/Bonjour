@@ -1,0 +1,11 @@
+Link:<model/>; rel="model"
+Link:<properties/>; rel="properties"
+Link:<actions/>; rel="actions"
+Link:<things/>; rel="things"
+Link:<subscription/>; rel="subscription"
+Link:<type/>; rel="type"
+Link:<product/>; rel="product"
+Link:<help/>; rel="help"
+Link:<ui/>; rel="ui"
+Link:<custom/>; rel="custom"
+{"id":1,"name":"testResource2","description":"this is experiment device 2","createdAt":"2018-09-06","updateAt":"2018-09-07","tags":[{"tag":"1"}],"customFields":{"sensor":"Temperature sensor","type":"DH11"}}

@@ -378,6 +378,7 @@ function main(){
 							obj.service={domain:domain,port:port};
 							
 							obj.profile=data.toString('utf8');
+							// console.log(obj);
 							res.write(JSON.stringify(obj));
 							res.end();
 						});

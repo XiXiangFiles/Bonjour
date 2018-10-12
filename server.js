@@ -516,10 +516,13 @@ function createServer(service,port){
 		let flag=false;
 		if(req.method == 'GET'){
 			let count=0;
+			let str;
 			Service.forEach(function(e){
 			
 				if(req.url.substring(1,e.length+1)== e){
+
 					if(req.url.length==(e.length+1)){
+
 						console.log(req.url.substring(1,e.length+1));
 						res.writeHead(200,{'Content-Type':'text/html'});
 						fs.readFile('profile/'+e+"/"+e+".json", function(err, data) {
@@ -548,9 +551,10 @@ function createServer(service,port){
 						});
 						count--;
 					}
-					if(req.url== ("/"+e+"/properties/")){
+					if((str=("/"+e+"/properties/"))==req.url.substring(0,str.length)){
 						
-						fs.readFile('profile/'+e+"/properties/"+e+".json", function(err, data) {
+						console.log(`${req.url.replace("%2F","/")}${e}.json`);
+						fs.readFile(`profile/${req.url.replace("%2F","/")}${e}.json`, function(err, data) {
 					    	if(!err){
 					    		flag=false;
 								res.write(data);
@@ -562,9 +566,10 @@ function createServer(service,port){
 						});
 						count--;
 					}
-					if(req.url== ("/"+e+"/actions/")){
+					if((str=("/"+e+"/actions/"))==req.url.substring(0,str.length)){
 						
-						fs.readFile(`profile/${e}/properties/${e}.json`, function(err, data) {
+						console.log(`${req.url.replace("%2F","/")}${e}.json`);
+						fs.readFile(`profile/${req.url.replace("%2F","/")}${e}.json`, function(err, data) {
 					    	if(!err){
 					    		flag=false;
 								res.write(data);
@@ -599,8 +604,6 @@ function init(name ,floder){
 			});
 		});
 	});
-	
-
 }
 
 function initWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
@@ -646,8 +649,6 @@ function generateWTMofVal(serviceName,floder,content){
 	  			console.log('WTM val is saved!');
 		});
 	});
-	// console.log('profile/'+serviceName+'/'+floder+'/');
-	
 }
 function gpsSensor(){
 
@@ -729,7 +730,7 @@ s
 function discribeAction(serviceName,doamin,actions){
 
 	let res=[];
-	let links=`Link:<http://${doamin}/${serviceName}/actions>;rel="type"\n`;
+	let links=`Link:<http://${doamin}/${serviceName}/actions/>;rel="type"\n`;
 	actions.forEach(function(val,key){
 		let obj={};
 		obj.id=key;
@@ -764,7 +765,6 @@ function demoActions(serviceName,floder,id,cmd){
 				});
 			});
 			
-
 		break;
 	}
 }
