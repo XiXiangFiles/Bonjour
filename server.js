@@ -512,9 +512,10 @@ function createServer(service,port){
 
 	const Service=service;	
 	http.createServer(function(req,res){	
-		//console.log(Service);
+		
 		let flag=false;
 		if(req.method == 'GET'){
+
 			let count=0;
 			let str;
 			Service.forEach(function(e){
@@ -524,12 +525,22 @@ function createServer(service,port){
 					if(req.url.length==(e.length+1)){
 
 						console.log(req.url.substring(1,e.length+1));
-						res.writeHead(200,{'Content-Type':'text/html'});
-						fs.readFile('profile/'+e+"/"+e+".json", function(err, data) {
-					    		if(!err){
-					    			flag=false;
-								res.write(data);
-				    				res.end();
+						
+
+
+						fs.readFile(`profile/${e}/links`, function(err, data) {
+					    	if(!err){
+
+					    		flag=false;
+					    		let string=data.toString('utf8');
+					    		res.writeHead(200,{'Link':string.split('\n')});
+								fs.readFile(`profile/${e}/${e}.json`,function(err,data){
+									if(!err){
+										res.write(data);
+									}else{
+										res.end();
+									}
+								});
 							}else{ 
 								res.write("false");
 								res.end();
@@ -551,14 +562,20 @@ function createServer(service,port){
 						});
 						count--;
 					}
-					if((str=("/"+e+"/properties/"))==req.url.substring(0,str.length)){
+					if((str=("/"+e+"/properties"))==req.url.substring(0,str.length)){
 						
-						console.log(`${req.url.replace("%2F","/")}${e}.json`);
-						fs.readFile(`profile/${req.url.replace("%2F","/")}${e}.json`, function(err, data) {
+
+						fs.readFile(`profile${req.url}/links`, function(err, data) {
 					    	if(!err){
-					    		flag=false;
-								res.write(data);
-				    			res.end();
+					    		
+					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
+					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									console.log(`profile${req.url}/${e}.json`);
+						    		flag=false;
+									res.write(data);
+					    			res.end();
+					    		});
+
 							}else{ 
 								res.write("false");
 								res.end();
@@ -566,14 +583,20 @@ function createServer(service,port){
 						});
 						count--;
 					}
-					if((str=("/"+e+"/actions/"))==req.url.substring(0,str.length)){
+					if((str=("/"+e+"/actions"))==req.url.substring(0,str.length)){
 						
-						console.log(`${req.url.replace("%2F","/")}${e}.json`);
-						fs.readFile(`profile/${req.url.replace("%2F","/")}${e}.json`, function(err, data) {
+						console.log(`profile${req.url}/${e}.json`);
+						fs.readFile(`profile${req.url}/links`, function(err, data) {
 					    	if(!err){
-					    		flag=false;
-								res.write(data);
-				    			res.end();
+					    		
+					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
+					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									console.log(`profile${req.url}/${e}.json`);
+						    		flag=false;
+									res.write(data);
+					    			res.end();
+					    		});
+
 							}else{ 
 								res.write("false");
 								res.end();
@@ -634,9 +657,13 @@ function initWTM(id,createdAt, updateAt, name,description , tags , customFields,
 		Links+=generateLink(e);
 	});
 
-	fs.writeFile('profile/'+name+'/'+name+".json",Links+JSON.stringify(profile), function (err) {
+	fs.writeFile(`profile/${name}/links`,Links, function (err) {
   		if (!err)
-  			console.log('Saved!');
+  			console.log(`WT(${name}) root links saved`);
+	});
+	fs.writeFile('profile/'+name+'/'+name+".json",JSON.stringify(profile), function (err) {
+  		if (!err)
+  			console.log(`WT(${name}) root json saved`);
 	});
 
 	return JSON.stringify(profile);
@@ -715,9 +742,13 @@ s
 				
 				if(propertiesContent.length == properties.length){
 
-					let link=`Link: <http://${domain}/${serviceName}/properties/>;rel="type"\n`;
-					// let link="Link: <http://"+domain+"/properties>;rel=\"type\"\n";
-					fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",link+JSON.stringify(propertiesContent), function (err) {
+					let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
+
+					fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
+						if (!err)
+							console.log('WTM properties link val is saved!');
+					});
+					fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",JSON.stringify(propertiesContent), function (err) {
 				 		if (!err)
 				  			console.log('WTM properties val is saved!');
 					});
@@ -730,7 +761,7 @@ s
 function discribeAction(serviceName,doamin,actions){
 
 	let res=[];
-	let links=`Link:<http://${doamin}/${serviceName}/actions/>;rel="type"\n`;
+	let links=`Link:<http://${doamin}/${serviceName}/actions/>; rel="type"`;
 	actions.forEach(function(val,key){
 		let obj={};
 		obj.id=key;
@@ -738,10 +769,16 @@ function discribeAction(serviceName,doamin,actions){
 		res.push(obj);
 	});
 	fs.mkdir(`profile/${serviceName}/actions`,function(err){
-		fs.writeFile('profile/'+serviceName+'/actions/'+serviceName+".json",links+JSON.stringify(res), function (err) {
+		
+		fs.writeFile(`profile/${serviceName}/actions/links`,links, function (err) {
+			if (!err)
+				console.log('WTM actions link val is saved!');
+		});
+		fs.writeFile('profile/'+serviceName+'/actions/'+serviceName+".json",JSON.stringify(res), function (err) {
 			if (!err)
 				console.log('WTM actions val is saved!');
 		});
+
 	});
 	
 	return JSON.stringify(res);
