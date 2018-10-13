@@ -235,8 +235,10 @@
 		data.name=name;
 		if(type !='undefined')
 			data.type=type;
-		else
+		else{
 			data.type=$('.queryurl').val();
+			data.type.trim();
+		}
 
 		$.ajax({
 			url:"query",
@@ -245,11 +247,13 @@
 			data:data,
 			success:function(res){
 				let data=JSON.parse(res);
+				console.log(res);
 				$('#queryresult').empty();
 				if( data.profile== false)
 					$('.link-result').append(data.profile.toString());
 				else {
-					$('#queryresult').append(data.profile.replace("\\",""));
+					$('#queryresult').append(JSON.stringify(data.profile));
+					// $('.link-result').append(data.profile);
 				}
 			}
 		});
@@ -265,13 +269,13 @@
 		else
 			data.type=$('.queryurl').val();
 
-		// console.log("method= "+ method)		
 		$.ajax({
 			url:"query",
 			type:method,
 			cache:false,
 			data:data,
 			success:function(res){
+
 				let data=JSON.parse(res);
 
 				$('.link-result').empty();
@@ -280,11 +284,12 @@
 					$('.link-result').append(data.profile.toString());
 				else {
 					function content(type,content,query){
+						console.log(content);
 						let res="";
 						let btn=['GET','POST','PUT','DELETE'];
 
 						switch(type){
-							case 'model/':
+							case 'model':
 								console.log("content= "+content);
 								let result=JSON.parse(content);
 								res=add_label("","col-sm-2 control-label","ID");
@@ -315,13 +320,13 @@
 
 							break;
 							
-							case 'properties/':
+							case 'properties':
 								
-								let str=content.split("\n");
-								let description=JSON.parse(str[1]);
+								
+								// let description=JSON.parse(content);
 								console.log("properties= "+content);
 								res+=add_label("","col-sm-2 control-label","URL:");
-								res+=add_input("","form-control mr-sm-2 queryurl","text",type);
+								res+=add_input("","form-control mr-sm-2 queryurl","text",`${type}/`);
 								res+="</br>";
 								res+=add_label("","col-sm-2 control-label","Data");
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
@@ -330,16 +335,16 @@
 									res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
-								res+=str[1];
+								res+=JSON.stringify(content)
 								res+=add_div("queryresult","","");
 
 							break;
 
-							case 'actions/':	
+							case 'actions':	
 
-								let actions=content.split('\n');
+								// let actions=content.split('\n');
 								res+=add_label("","col-sm-2 control-label","URL:");
-								res+=add_input("","form-control mr-sm-2 queryurl","text",type);
+								res+=add_input("","form-control mr-sm-2 queryurl","text",`${type}/`);
 								res+="</br>";
 								res+=add_label("","col-sm-2 control-label","Data");
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
@@ -348,32 +353,32 @@
 									res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
-								res+=actions[1];
+								res+=JSON.stringify(content);
 								res+=add_div("queryresult","","");
 
 							break;
 							
-							case 'things/':
+							case 'things':
 								res=content;
 							break;
 							
-							case 'subscription/':	
+							case 'subscription':	
 								res=content;
 							break;
 							
-							case 'type/':
+							case 'type':
 								res=content;
 							break;
 							
-							case 'help/':	
+							case 'help':	
 								res=content;
 							break;
 							
-							case 'ui/':
+							case 'ui':
 								res=content;
 							break;
 							
-							case 'custom/':
+							case 'custom':
 								res=content;
 							break;
 						}
@@ -433,12 +438,18 @@
 			$('.profile').append(links);
 
 			result.links.forEach(function(e){
-				let str=e.title.split("=");
+				let str=e.split("=");
 				if(str[1]!=undefined){
-					linksbtn+=add_button("","btn btn-info",str[1],"queryLinks('"+result.service.domain+"','"+result.service.port+"','"+result.profile.name+"','"+e.link+"','GET')","rel:"+str[1].replace('"',""));
+					let url=str[1];
+					let str2="";
+					for(let i =1 ; i<url.length-1 ; i++){
+						str2+=url[i];
+					}
+
+					$('.box-footer').append(add_button("","btn btn-info",str[1],`queryLinks('${result.service.domain}','${result.service.port}','${result.profile.name}','${str2}','GET')`,"rel:"+str[1].replace('"',"")));
 				}
 			});
-			$('.box-footer').append(linksbtn);
+			// $('.box-footer').append(linksbtn);
 		}
 	});		
 	

@@ -326,7 +326,8 @@ function main(){
 				}
 				
 				finaluri="http://"+domain+":"+port+"/"+name+'/'+url.replace("%2F","/");
-			
+				finaluri=finaluri.replace("%2F","/");
+
 				console.log(finaluri);
 
 				if(req.method=='GET'){
@@ -341,7 +342,7 @@ function main(){
 							let obj={};
 							obj.query=finaluri;
 							obj.service={domain:domain,port:port};
-							obj.profile=data.toString('utf8');
+							obj.profile=JSON.parse(data.toString('utf8'));
 							obj.links=response.headers.link;
 							console.log(obj);
 							res.write(JSON.stringify(obj));

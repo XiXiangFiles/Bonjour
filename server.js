@@ -567,7 +567,6 @@ function createServer(service,port){
 
 						fs.readFile(`profile${req.url}/links`, function(err, data) {
 					    	if(!err){
-					    		
 					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
 					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
 									console.log(`profile${req.url}/${e}.json`);
@@ -577,8 +576,19 @@ function createServer(service,port){
 					    		});
 
 							}else{ 
-								res.write("false");
-								res.end();
+
+								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									if(!err){
+										console.log(`profile${req.url}/${e}.json`);
+							    		flag=false;
+										res.write(data);
+						    			res.end();
+									}else{
+										res.write("false");
+										res.end();
+									}
+					    		});
+								
 							}
 						});
 						count--;
@@ -598,8 +608,17 @@ function createServer(service,port){
 					    		});
 
 							}else{ 
-								res.write("false");
-								res.end();
+								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									if(!err){
+										console.log(`profile${req.url}/${e}.json`);
+							    		flag=false;
+										res.write(data);
+						    			res.end();
+									}else{
+										res.write("false");
+										res.end();
+									}
+					    		});
 							}
 						});
 						count--;
