@@ -2,7 +2,7 @@ const mdns=require('multicast-dns')();
 const spawn = require('threads').spawn;
 const http= require('http');
 const request=require('request');
-const formatter = require('format-link-header');
+const decode = require('urldecode');
 const fs=require('fs');
 
 function queryObj(name,type){
@@ -182,6 +182,7 @@ function main(){
 	query("_services._dns-sd._udp.local","PTR");
 	
 	http.createServer(function(req,res){
+
 		function istype(type){
 			if(type == 'html' || type == 'css' || type== 'png' || type== 'ico'|| type=='js')
 				return true;
@@ -297,10 +298,57 @@ function main(){
 			
 		}
 		if(req.url.substring(1,6)=='query'){
-		
 			if(req.url==='/query'){
-				res.write('false');
-				res.end();
+				if(req.method =='PUT'){
+					// console.log(req.url);
+					// console.log(req.method);
+					let content="";
+					req.on('data', function (chunk) {
+    					content += chunk.toString('utf8');
+
+  					});
+					req.on('end', function () {
+
+						let data = new Map();
+						let keyVal=content.split('&');
+						let domain,port,name,url,finaluri,queryData;
+						content = decode(content);
+
+						keyVal.forEach(function(e){
+							let dekeyVal=e.split('=');
+							data.set(dekeyVal[0],dekeyVal[1]);
+						});
+
+						for(let [key , val] of data){
+							if (key == "domain")
+								domain=val;
+							else if( key == "port")
+								port=val;
+							else if(key == "type"){
+								url=val;
+							}else if(key == 'name'){
+								name=val;
+							}else if(key == 'data')
+								queryData=val;
+						}
+				
+						finaluri=`http://${domain}:${port}/${name}/${url}`;
+						finaluri=decode(finaluri);
+						
+						console.log(`finaluri=${finaluri}`);
+						console.log(`data=${content}`);
+						request.put({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ /* ... */ 
+							if(httpResponse.statusCode == 204 ){
+								res.write(`{"statusCode":204}`);
+								res.end();
+							}	
+						});
+						
+					});
+				
+				}
+				// res.write('false');
+				// res.end();
 			}else{
 				
 				let str=req.url;
@@ -325,8 +373,8 @@ function main(){
 					}
 				}
 				
-				finaluri="http://"+domain+":"+port+"/"+name+'/'+url.replace("%2F","/");
-				finaluri=finaluri.replace("%2F","/");
+				finaluri="http://"+domain+":"+port+"/"+name+'/'+url;
+				finaluri=decode(finaluri);
 
 				console.log(finaluri);
 
@@ -352,15 +400,11 @@ function main(){
 					
 			
 
-				}else if(req.url.method=='POST'){
+				}else if(req.method=='POST'){
 					
 					res.write("POST");
 					res.end();
 
-				}else if(req.url.method=='PUT'){
-			
-					res.write("PUT");
-					res.end();
 				}else if(req.url.method == 'DELETE'){
 					res.write("DELETE");
 					res.end();

@@ -239,11 +239,15 @@
 			data.type=$('.queryurl').val();
 			data.type.trim();
 		}
+		data.data=$('.queryData').val().trim();
+		data.data.trim();
+		console.log(data);
 
 		$.ajax({
 			url:"query",
 			type:method,
 			cache:false,
+			contentType: "charset=utf-8",
 			data:data,
 			success:function(res){
 				let data=JSON.parse(res);
@@ -253,7 +257,7 @@
 					$('.link-result').append(data.profile.toString());
 				else {
 					$('#queryresult').append(JSON.stringify(data.profile));
-					// $('.link-result').append(data.profile);
+				
 				}
 			}
 		});
@@ -332,7 +336,8 @@
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
 								res+="</br>";
 								btn.forEach(function(e){
-									res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
+									if(e=="PUT" || e=="GET")
+										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
 								res+=JSON.stringify(content)

@@ -2,6 +2,8 @@ const mdns=require('multicast-dns')();
 const http=require('http');
 const fs=require('fs');
 const datetime=require('node-datetime');
+const decode = require('urldecode');
+
 class dnssd{
 	
 	generateANY(Instance,Service){
@@ -525,9 +527,7 @@ function createServer(service,port){
 					if(req.url.length==(e.length+1)){
 
 						console.log(req.url.substring(1,e.length+1));
-						
-
-
+					
 						fs.readFile(`profile/${e}/links`, function(err, data) {
 					    	if(!err){
 
@@ -633,6 +633,35 @@ function createServer(service,port){
 
 			}
 				
+		}else if(req.method == 'PUT'){
+			let content="";
+			let uri=decode(req.url);
+			req.on('data', function (chunk) {
+				content += chunk.toString('utf8');
+  			});
+  			req.on('end', function () {
+
+  				let count=0;
+				let str;
+
+				content = decode(content);
+				console.log(decode(content));
+				Service.forEach(function(e){
+					if(uri.substring(1,e.length+1)== e){
+						if((str=("/"+e+"/properties"))==req.url.substring(0,str.length)){
+							res.writeHead(204,[]);
+							res.end();
+							count--;
+						}
+					}
+					count++;
+				});
+				if(count==Service.length){
+					res.write("false");
+					res.end();
+				}
+			});
+
 		}
 	}).listen(port);
 
