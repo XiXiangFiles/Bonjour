@@ -809,12 +809,20 @@ s
 function discribeAction(serviceName,doamin,actions){
 
 	let res=[];
+	let actionDemo=new Map();
 	let links=`Link:<http://${doamin}/${serviceName}/actions/>; rel="type"`;
+	
+	//This Map  be used to describe the reource of action field
+	actionDemo.set("Demo1",undefined);
+
 	actions.forEach(function(val,key){
 		let obj={};
 		obj.id=key;
-		obj.name=key;
+		obj.name=val;
 		res.push(obj);
+
+		// To save the actions of description.
+		demoActions(serviceName,key,actionDemo,"create");
 	});
 	fs.mkdir(`profile/${serviceName}/actions`,function(err){
 		
@@ -833,23 +841,39 @@ function discribeAction(serviceName,doamin,actions){
 
 }
 
-function demoActions(serviceName,floder,id,cmd){
+// the idOfValue are Map object type that map the id and the value in object 
+function demoActions(serviceName,floder,idOfValue,cmd){ 
+
 	let dt = datetime.create();
 	switch(cmd){
 		case 'create':
-
-			let obj={};
-			obj.id=id;
-			obj.value="none";
-			obj.status="init";
-			obj.timestamp=dt.format('Y-m-d H:M:S');
+			let arr=[];
+			idOfValue.forEach(function(val,key){
+				let obj={};
+				obj.id=key;
+				obj.value="none";
+				obj.status="init";
+				obj.timestamp=dt.format('Y-m-d H:M:S');
+				arr.push(obj);
+			});
 			fs.mkdir(`profile/${serviceName}/actions/${floder}`,function(err){
-				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
+				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(arr),function(err){
 					if (!err)
 					  	console.log(`WTM actions ${floder} val is saved!`);
 				});
+				arr.forEach(function(e){
+					fs.mkdir(`profile/${serviceName}/actions/${floder}/${e.id}`,function(err){
+						fs.writeFile(`profile/${serviceName}/actions/${floder}/${e.id}/${serviceName}.json`,JSON.stringify(e),function(err){
+							if (!err)
+							  	console.log(`WTM actions ${floder}/${e.id}/${serviceName}.json val is saved!`);
+						});
+					})
+				})
 			});
-			
+		break;
+
+		case 'start':
+
 		break;
 	}
 }
@@ -900,15 +924,18 @@ function main(){
 	
 	// function temperatureSensor(serviceName,id,name)
 	temperatureSensor(serviceName[1],"temperature","DEMO 1");
-	temperatureSensor(serviceName[1],"temperature2","DEMO 2");
-	generateWTM(serviceName[1],`${domain}.local:8080`);
+	// temperatureSensor(serviceName[1],"temperature2","DEMO 2");
+
 
 	let actions=new Map();
-	actions.set("Demo_actions","this is a sample to demon acticons");
+	actions.set("Demo_actions_start","the resource start");
+	actions.set("Demo_actions_restart","the resource restart");
+
 	// discribeAction(serviceName,doamin,actions)
 	discribeAction(serviceName[1],`${domain}.local:8080`,actions);
-	// demoActions(serviceName,floder,id,cmd)
-	demoActions(serviceName[1],"Demo_actions","demo1","create");
+	
+
+	generateWTM(serviceName[1],`${domain}.local:8080`);
 }
 
 main();
