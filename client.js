@@ -294,15 +294,14 @@ function main(){
 					}
 					res.end();
 				});	
-			}	
-			
+			}			
 		}
 		if(req.url.substring(1,6)=='query'){
 			if(req.url==='/query'){
+				let content="";
 				if(req.method =='PUT'){
 					// console.log(req.url);
 					// console.log(req.method);
-					let content="";
 					req.on('data', function (chunk) {
     					content += chunk.toString('utf8');
 
@@ -334,21 +333,64 @@ function main(){
 				
 						finaluri=`http://${domain}:${port}/${name}/${url}`;
 						finaluri=decode(finaluri);
-						
+
 						console.log(`finaluri=${finaluri}`);
 						console.log(`data=${content}`);
 						request.put({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ /* ... */ 
 							if(httpResponse.statusCode == 204 ){
-								res.write(`{"statusCode":204}`);
+								let data={};
+								data.profile=`statusCode:204`;
+								res.write(JSON.stringify(data));
 								res.end();
 							}	
 						});
 						
 					});
 				
+				}else if(req.method == 'POST'){
+					req.on('data', function (chunk) {
+    					content += chunk.toString('utf8');
+  					});
+  					req.on('end',function(){
+  						let data = new Map();
+						let keyVal=content.split('&');
+						let domain,port,name,url,finaluri,queryData;
+						content = decode(content);
+
+						keyVal.forEach(function(e){
+							let dekeyVal=e.split('=');
+							data.set(dekeyVal[0],dekeyVal[1]);
+						});
+
+						for(let [key , val] of data){
+							if (key == "domain")
+								domain=val;
+							else if( key == "port")
+								port=val;
+							else if(key == "type"){
+								url=val;
+							}else if(key == 'name'){
+								name=val;
+							}else if(key == 'data')
+								queryData=val;
+						}
+				
+						finaluri=`http://${domain}:${port}/${name}/${url}`;
+						finaluri=decode(finaluri);
+
+						console.log(`finaluri=${finaluri}`);
+						console.log(`data=${content}`);
+						request.post({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ 
+							if(httpResponse.statusCode == 204 ){
+								let data={};
+								data.profile=`statusCode:204`;
+								res.write(JSON.stringify(data));
+								res.end();
+							}	
+						});
+  					});
 				}
-				// res.write('false');
-				// res.end();
+
 			}else{
 				
 				let str=req.url;

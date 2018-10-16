@@ -646,7 +646,13 @@ function createServer(service,port){
 
 				content = decode(content);
 				console.log(decode(content));
+
 				Service.forEach(function(e){
+					if(uri == '/'){
+						res.writeHead(204,[]);
+							res.end();
+							count--;
+					}
 					if(uri.substring(1,e.length+1)== e){
 						if((str=("/"+e+"/properties"))==req.url.substring(0,str.length)){
 							res.writeHead(204,[]);
@@ -661,7 +667,69 @@ function createServer(service,port){
 					res.end();
 				}
 			});
+		}else if(req.method == 'POST'){
+			let content="";
+			let uri=decode(req.url);
+			req.on('data', function (chunk) {
+				content += chunk.toString('utf8');
+  			});
+  			req.on('end', function () {
 
+  				let count=0;
+				let str;
+
+				content = decode(content);
+				console.log(decode(content));
+
+				Service.forEach(function(e){
+					if(uri == '/'){
+						res.writeHead(204,[]);
+							res.end();
+							count--;
+					}
+					if(uri.substring(1,e.length+1)== e){
+						if((str=("/"+e+"/actions"))==req.url.substring(0,str.length)){
+							console.log(`str = ${str}`);
+							try{
+								let queryData=decode(content);
+								queryData=queryData.split('=');
+								queryData=JSON.parse(queryData[1]);
+								// console.log(`profile${decode(req.url)}/${data.id}/${e}.json`);
+								fs.readFile(`profile${decode(req.url)}/${queryData.id}/${e}.json`,'utf8',function(err,data){
+									// console.log(`profile = ${data}`);
+									if(!err){
+										let action=JSON.parse(data);
+										if(action.id==queryData.id){
+											let url=decode(req.url);
+											let floder=url.split('actions/');
+											let idOfValue=new Map();
+											idOfValue.set(action.id,undefined);
+											if(demoActions(e,`${floder[1]}/${queryData.id}`,idOfValue,queryData.value) == 0){
+												res.writeHead(204,[]);
+												res.end();
+											}else {
+												res.writeHead(201,[]);
+												res.end();
+											}
+										}
+									}	
+								});
+							}catch(e){
+								console.log(`err = ${e}`);
+								res.writeHead(201,[]);
+								res.end();
+							}
+							
+							count--;
+						}
+					}
+					count++;
+				});
+				if(count==Service.length){
+					res.write("false");
+					res.end();
+				}
+			});
 		}
 	}).listen(port);
 
@@ -774,7 +842,7 @@ function generateWTM(serviceName,domain){
 				case 'things':
 					things.push(path.path);
 				break;
-s
+
 				case 'subscriptions':
 					subscriptions.push(path.path);
 				break;
@@ -845,9 +913,10 @@ function discribeAction(serviceName,doamin,actions){
 function demoActions(serviceName,floder,idOfValue,cmd){ 
 
 	let dt = datetime.create();
+	console.log(`floder = ${floder}  cmd = ${cmd}`);
+	let arr=[];
 	switch(cmd){
 		case 'create':
-			let arr=[];
 			idOfValue.forEach(function(val,key){
 				let obj={};
 				obj.id=key;
@@ -870,11 +939,28 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 					})
 				})
 			});
+			return 0;
 		break;
 
 		case 'start':
-
+			console.log("into Damo actions");
+			idOfValue.forEach(function(val,key){
+				let obj={};
+				obj.id=key;
+				obj.value="start";
+				obj.status="executing";
+				obj.timestamp=dt.format('Y-m-d H:M:S');
+				console.log(`profile/${serviceName}/actions/${floder}/${serviceName}.json`);
+				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err)
+					  	console.log(`WTM actions actions/${floder}/${key}/${serviceName}.json val is updated`);
+				});
+			});
+			return 0;
 		break;
+
+		default : 
+			return 1;
 	}
 }
 
