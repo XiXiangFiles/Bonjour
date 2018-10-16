@@ -854,20 +854,27 @@ function generateWTM(serviceName,domain){
 	if(properties.length >0){
 		for(let i=0; i<properties.length ; i++){
 			fs.readFile(properties[i],'utf8',function(err,data){
-				propertiesContent.push(JSON.parse(data));
-				
-				if(propertiesContent.length == properties.length){
+				if(!err){
+					try{
+						propertiesContent.push(JSON.parse(data));
+					
+						if(propertiesContent.length == properties.length){
 
-					let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
+							let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
 
-					fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
-						if (!err)
-							console.log('WTM properties link val is saved!');
-					});
-					fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",JSON.stringify(propertiesContent), function (err) {
-				 		if (!err)
-				  			console.log('WTM properties val is saved!');
-					});
+							fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
+								if (!err)
+									console.log('WTM properties link val is saved!');
+							});
+							fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",JSON.stringify(propertiesContent), function (err) {
+						 		if (!err)
+						  			console.log('WTM properties val is saved!');
+							});
+						}	
+					}catch(e){
+
+					}
+					
 				}
 			});
 		}	
@@ -915,8 +922,10 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 	let dt = datetime.create();
 	console.log(`floder = ${floder}  cmd = ${cmd}`);
 	let arr=[];
+	let properties=new Set();
 	switch(cmd){
 		case 'create':
+
 			idOfValue.forEach(function(val,key){
 				let obj={};
 				obj.id=key;
@@ -924,6 +933,7 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 				obj.status="init";
 				obj.timestamp=dt.format('Y-m-d H:M:S');
 				arr.push(obj);
+				properties.add(JSON.stringify(obj));
 			});
 			fs.mkdir(`profile/${serviceName}/actions/${floder}`,function(err){
 				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(arr),function(err){
@@ -936,9 +946,22 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 							if (!err)
 							  	console.log(`WTM actions ${floder}/${e.id}/${serviceName}.json val is saved!`);
 						});
-					})
-				})
+						
+					});
+				});
+				properties.forEach(function(e){
+					let data=JSON.parse(e);
+					fs.mkdir(`profile/${serviceName}/properties/${data.id}`,function(err){
+							fs.writeFile(`profile/${serviceName}/properties/${data.id}/${serviceName}.json`,e,function(err){
+								if (!err)
+								  	console.log(`WTM properties ${data.id}/${serviceName}.json val is saved!`);
+							});
+					});
+				});
+				/* To wait arr.forEach */
 			});
+
+
 			return 0;
 		break;
 
@@ -950,7 +973,6 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 				obj.value="start";
 				obj.status="executing";
 				obj.timestamp=dt.format('Y-m-d H:M:S');
-				console.log(`profile/${serviceName}/actions/${floder}/${serviceName}.json`);
 				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
 					if (!err)
 					  	console.log(`WTM actions actions/${floder}/${key}/${serviceName}.json val is updated`);
@@ -1009,7 +1031,8 @@ function main(){
 	initWTM(1,"2018-09-06","2018-09-07",serviceName[1],"this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
 	
 	// function temperatureSensor(serviceName,id,name)
-	temperatureSensor(serviceName[1],"temperature","DEMO 1");
+	setTimeout(()=>{temperatureSensor(serviceName[1],"temperature","DEMO 1")},100);
+	// temperatureSensor(serviceName[1],"temperature","DEMO 1");
 	// temperatureSensor(serviceName[1],"temperature2","DEMO 2");
 
 
@@ -1018,10 +1041,10 @@ function main(){
 	actions.set("Demo_actions_restart","the resource restart");
 
 	// discribeAction(serviceName,doamin,actions)
-	discribeAction(serviceName[1],`${domain}.local:8080`,actions);
-	
+	// discribeAction(serviceName[1],`${domain}.local:8080`,actions);
+	setTimeout(()=>{discribeAction(serviceName[1],`${domain}.local:8080`,actions)},100);
 
-	generateWTM(serviceName[1],`${domain}.local:8080`);
+	setTimeout(()=>{generateWTM(serviceName[1],`${domain}.local:8080`)},1000);
 }
 
 main();
