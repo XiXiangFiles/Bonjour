@@ -694,9 +694,8 @@ function createServer(service,port){
 								let queryData=decode(content);
 								queryData=queryData.split('=');
 								queryData=JSON.parse(queryData[1]);
-								// console.log(`profile${decode(req.url)}/${data.id}/${e}.json`);
+
 								fs.readFile(`profile${decode(req.url)}/${queryData.id}/${e}.json`,'utf8',function(err,data){
-									// console.log(`profile = ${data}`);
 									if(!err){
 										let action=JSON.parse(data);
 										if(action.id==queryData.id){
@@ -818,6 +817,7 @@ function generateWTM(serviceName,domain){
 	let properties=[];
 	let propertiesContent=[];
 	let actions=[];
+	let actionSet=new Set();
 	let actionsContent=[];
 	let things=[];
 	let thingsContent=[];
@@ -836,7 +836,10 @@ function generateWTM(serviceName,domain){
 				break;
 
 				case 'actions':
-					actions.push(path.path);
+					if(str.length >5){
+						actions.push(path.path);
+						actionSet.add(str[3]);
+					}
 				break;
 
 				case 'things':
@@ -853,33 +856,74 @@ function generateWTM(serviceName,domain){
 
 	if(properties.length >0){
 		for(let i=0; i<properties.length ; i++){
+
 			fs.readFile(properties[i],'utf8',function(err,data){
 				if(!err){
 					try{
 						propertiesContent.push(JSON.parse(data));
-					
 						if(propertiesContent.length == properties.length){
-
 							let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
-
-							fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
-								if (!err)
-									console.log('WTM properties link val is saved!');
-							});
+							if(domain !== undefined){
+								fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
+									if (!err)
+										console.log('WTM properties link val is saved!');
+								});
+							}
 							fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",JSON.stringify(propertiesContent), function (err) {
 						 		if (!err)
 						  			console.log('WTM properties val is saved!');
 							});
-						}	
+						}
 					}catch(e){
-
+						console.log(e);
 					}
-					
 				}
 			});
 		}	
 	}
+	if(actions.length>0){
 
+		actionSet.forEach(function(classification){
+			let arr=[];
+			let count=0;
+			let promise=new Promise(function(resolve,reject){
+				actions.forEach(function(e){
+					let str=e.split('/');
+					if(str[3]==classification){
+						arr.push(e);
+					}
+					if(++count==actions.length){
+						let dataArry=[];
+						let subcount=0;
+						arr.forEach(function(path){
+							fs.readFile(path,'utf8',function(err,data){
+								dataArry.push(data);
+								if(++subcount==arr.length){
+									let promise=new Promise(function(resolve1,reject1){
+										let subpath=path.split('/');
+										// console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/serviceName.json`);
+										fs.writeFile(`${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/${serviceName}.json`,dataArry,function(err){
+											if(!err){
+												console.log(`WTM actions folder is update (${subpath[3]})`);
+												resolve1(0)
+												resolve(0);
+											}
+										});
+									});
+									promise.then((f,r)=>{
+										console.log(dataArry);
+									});
+								}
+							});
+						});
+					}
+				});
+			});
+			promise.then(function(full,rej){
+				console.log("--------------------------------------");
+			});	
+		});
+	}
 }
 function discribeAction(serviceName,doamin,actions){
 
@@ -946,7 +990,6 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 							if (!err)
 							  	console.log(`WTM actions ${floder}/${e.id}/${serviceName}.json val is saved!`);
 						});
-						
 					});
 				});
 				properties.forEach(function(e){
@@ -958,10 +1001,7 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 							});
 					});
 				});
-				/* To wait arr.forEach */
 			});
-
-
 			return 0;
 		break;
 
@@ -973,14 +1013,21 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 				obj.value="start";
 				obj.status="executing";
 				obj.timestamp=dt.format('Y-m-d H:M:S');
+				let path=floder.split('/');
 				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
-					if (!err)
-					  	console.log(`WTM actions actions/${floder}/${key}/${serviceName}.json val is updated`);
+					if (!err){
+					  	console.log(`WTM actions actions/${floder}/${serviceName}.json val is updated`);
+					}
+				});
+				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err){
+					  	console.log(`WTM properties /${path[1]}/${serviceName}.json val is updated`);
+					  	generateWTM(serviceName,undefined);
+					}
 				});
 			});
 			return 0;
 		break;
-
 		default : 
 			return 1;
 	}
@@ -1032,9 +1079,6 @@ function main(){
 	
 	// function temperatureSensor(serviceName,id,name)
 	setTimeout(()=>{temperatureSensor(serviceName[1],"temperature","DEMO 1")},100);
-	// temperatureSensor(serviceName[1],"temperature","DEMO 1");
-	// temperatureSensor(serviceName[1],"temperature2","DEMO 2");
-
 
 	let actions=new Map();
 	actions.set("Demo_actions_start","the resource start");
