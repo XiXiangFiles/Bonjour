@@ -379,12 +379,24 @@ function main(){
 						finaluri=decode(finaluri);
 
 						console.log(`finaluri=${finaluri}`);
-						console.log(`data=${content}`);
+						console.log(`data=${queryData}`);
 						request.post({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ 
-							if(httpResponse.statusCode == 204 ){
-								let data={};
-								data.profile=`statusCode:204`;
-								res.write(JSON.stringify(data));
+							if(!err){
+								if(httpResponse.statusCode == 204 ){
+									let data={};
+									data.profile=`statusCode:204`;
+									res.write(JSON.stringify(data));
+									res.end();
+								}
+								if(httpResponse.statusCode == 201 ){
+									let data={};
+									data.profile=`statusCode:201`;
+									res.write(JSON.stringify(data));
+									res.end();
+								}
+							}else{
+								res.writeHead('404',[]);
+								res.write("Can't find this page");
 								res.end();
 							}	
 						});
@@ -439,15 +451,8 @@ function main(){
 							res.end();
 						});
 					});
-					
-			
 
-				}else if(req.method=='POST'){
-					
-					res.write("POST");
-					res.end();
-
-				}else if(req.url.method == 'DELETE'){
+				}else  if(req.url.method == 'DELETE'){
 					res.write("DELETE");
 					res.end();
 
