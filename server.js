@@ -623,6 +623,36 @@ function createServer(service,port){
 						});
 						count--;
 					}
+					if((str=("/"+e+"/subscription"))==req.url.substring(0,str.length)){
+						
+						console.log(`profile${req.url}/${e}.json`);
+						fs.readFile(`profile${req.url}/links`, function(err, data) {
+					    	if(!err){
+					    		
+					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
+					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									console.log(`profile${req.url}/${e}.json`);
+						    		flag=false;
+									res.write(data);
+					    			res.end();
+					    		});
+
+							}else{ 
+								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
+									if(!err){
+										console.log(`profile${req.url}/${e}.json`);
+							    		flag=false;
+										res.write(data);
+						    			res.end();
+									}else{
+										res.write("false");
+										res.end();
+									}
+					    		});
+							}
+						});
+						count--;
+					}
 						
 				}
 				count++;	
@@ -655,6 +685,11 @@ function createServer(service,port){
 					}
 					if(uri.substring(1,e.length+1)== e){
 						if((str=("/"+e+"/properties"))==req.url.substring(0,str.length)){
+							res.writeHead(204,[]);
+							res.end();
+							count--;
+						}
+						if((str=("/"+e+"/actions"))==req.url.substring(0,str.length)){
 							res.writeHead(204,[]);
 							res.end();
 							count--;
@@ -846,8 +881,9 @@ function generateWTM(serviceName,domain){
 					things.push(path.path);
 				break;
 
-				case 'subscriptions':
-					subscriptions.push(path.path);
+				case 'subscription':
+						// console.log(path.path)
+						subscriptions.push(path.path);
 				break;
 
 			}
@@ -900,6 +936,7 @@ function generateWTM(serviceName,domain){
 								dataArry.push(data);
 								if(++subcount==arr.length){
 									let promise=new Promise(function(resolve1,reject1){
+										// console.log(dataArry);
 										let subpath=path.split('/');
 										// console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/serviceName.json`);
 										fs.writeFile(`${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/${serviceName}.json`,dataArry,function(err){
@@ -923,6 +960,33 @@ function generateWTM(serviceName,domain){
 				console.log("--------------------------------------");
 			});	
 		});
+	}
+
+	if(subscriptions.length>0){
+
+		let arr=[];
+		let count=0;
+		subscriptions.forEach(function(subscription){
+			let promise=new Promise(function(resolve,reject){
+				console.log("test subscription= "+subscription);
+				fs.readFile(subscription,'utf8',function(err,data){
+					if(!err){
+						arr.push(JSON.parse(data));
+					}
+					if(++count == subscriptions.length){
+						fs.writeFile(`profile/${serviceName}/subscription/${serviceName}.json`,JSON.stringify(arr),function(err){
+							if(!err)
+								console.log(`profile/${serviceName}/subscription/${serviceName}.json`);
+						});
+					}
+				});
+				resolve(0);
+			});
+			promise.then(function(full){
+				console.log("####################################");
+			});
+		});
+		
 	}
 }
 function discribeAction(serviceName,doamin,actions){
@@ -961,7 +1025,7 @@ function discribeAction(serviceName,doamin,actions){
 }
 
 // the idOfValue are Map object type that map the id and the value in object 
-function demoActions(serviceName,floder,idOfValue,cmd){ 
+function demoActions(serviceName,floder,idOfValue,cmd,flag){ 
 
 	let dt = datetime.create();
 	console.log(`floder = ${floder}  cmd = ${cmd}`);
@@ -1028,11 +1092,30 @@ function demoActions(serviceName,floder,idOfValue,cmd){
 			});
 			return 0;
 		break;
+
 		default : 
 			return 1;
 	}
 }
+function subscribeComponet(serviceName,componets){
+	componets.forEach(function(componet){
 
+		let promise=new Promise(function(resolve,reject){
+			
+			fs.mkdir(`profile/${serviceName}/subscription/${componet.id}`,function(err){
+				fs.writeFile(`profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`,JSON.stringify(componet),function(err){
+					if(!err)
+						resolve(`Subscription Component = profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`);
+				});
+			});
+		});
+		promise.then(function(full){
+			console.log(full);
+			console.log(componet);
+		})
+
+	});
+}
 function main(){
 	
 	let Service= new Map();
@@ -1088,6 +1171,24 @@ function main(){
 	// discribeAction(serviceName[1],`${domain}.local:8080`,actions);
 	setTimeout(()=>{discribeAction(serviceName[1],`${domain}.local:8080`,actions)},100);
 
+	let websocket={};
+	websocket.id="DEMO_Temperature_WebSocket";
+	websocket.subscribeId="test1";
+	websocket.type="websocket";
+	websocket.resource="properties/temperature";
+
+	let webhook={};
+	webhook.id="test_Webhook";
+	webhook.type="webhook";
+	webhook.resource="properties/temperature";
+	webhook.callbackUrl="http://test";
+
+	let componetsArr=[];
+	componetsArr.push(websocket);
+	componetsArr.push(webhook);
+
+	setTimeout(()=>{subscribeComponet(serviceName[1],componetsArr)},500);
+	
 	setTimeout(()=>{generateWTM(serviceName[1],`${domain}.local:8080`)},1000);
 }
 
