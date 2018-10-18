@@ -247,7 +247,6 @@
 			url:"query",
 			type:method,
 			cache:false,
-			contentType: "charset=utf-8",
 			data:data,
 			success:function(res){
 				let data=JSON.parse(res);
@@ -355,7 +354,8 @@
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
 								res+="</br>";
 								btn.forEach(function(e){
-									res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
+									if(e=="PUT" || e=="GET" || e=="POST")
+										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
 								res+=JSON.stringify(content);
@@ -368,7 +368,21 @@
 							break;
 							
 							case 'subscription':	
-								res=content;
+
+								res+=add_label("","col-sm-2 control-label","URL:");
+								res+=add_input("","form-control mr-sm-2 queryurl","text",`${type}/`);
+								res+="</br>";
+								res+=add_label("","col-sm-2 control-label","Data");
+								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
+								res+="</br>";
+								btn.forEach(function(e){
+									if(e=="GET" || e=="DELETE")
+										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
+								});
+								res+="<br>";
+								res+=JSON.stringify(content);
+								res+=add_div("queryresult","","");
+
 							break;
 							
 							case 'type':
