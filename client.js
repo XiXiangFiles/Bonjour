@@ -4,6 +4,8 @@ const http= require('http');
 const request=require('request');
 const decode = require('urldecode');
 const fs=require('fs');
+const WebSocketServer = require('websocket').server;
+const WebSocketClient = require('websocket').client;
 
 function queryObj(name,type){
 	obj={};
@@ -92,12 +94,79 @@ function parseSRVTXT(packet){
 				});
 			}
 			
-		})		
+		});
 		obj.TXT=txt;
-
 	}
 	return JSON.stringify(obj);
+}
 
+function createWebsocketServer(server){
+	wsServer = new WebSocketServer({
+	    httpServer: server,
+	    autoAcceptConnections: false
+	});
+	function originIsAllowed(origin,resource) {
+	  // put logic here to detect whether the specified origin is allowed.
+	 	console.log(`origin = ${origin}   resource=${resource}`);
+
+	  return true;
+	}
+ 
+	wsServer.on('request', function(request) {
+	    if (!originIsAllowed(request.origin,request.resource)) {
+	      // Make sure we only accept requests from an allowed origin
+	      request.reject();
+	      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+	      return;
+	    }
+	    
+	    let connection = request.accept('echo-protocol', request.origin);
+
+	    connection.on('message', function(message) {
+
+	        if (message.type === 'utf8') {
+	            console.log('Received Message: ' + message.utf8Data);
+	            // try{
+
+	            	let queryData=JSON.parse(message.utf8Data);
+	            	console.log(`queryData url = ${queryData.service.domain}:${queryData.service.port}/${queryData.profile.resource}`);
+
+			        client.on('connect', function(connMdns) {
+
+					    connMdns.on('error', function(error) {
+					        console.log("connMdns Error: " + error.toString());
+					    });
+
+					    connMdns.on('close', function() {
+					        console.log('echo-protocol connMdns Closed');
+					    });
+				    
+				    	connMdns.on('message', function(message2) {
+
+					        if (message2.type === 'utf8') {
+
+					            console.log("Received: '" + message2.utf8Data + "'");
+					            connMdns.sendUTF(message2.utf8Data);
+
+					        }
+
+				    	});
+
+				    	connMdns.sendUTF("TEST");
+
+					});
+
+					client.connect(`ws://${queryData.service.domain}:${queryData.service.port}/${queryData.profile.resource}`, 'echo-protocol');
+
+	            // }catch(e){
+	            	// request.reject();
+	            // }   
+	        }
+	    });
+	    connection.on('close', function(reasonCode, description) {
+	        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+	    });
+	});
 }
 
 function main(){
@@ -181,7 +250,7 @@ function main(){
 	});
 	query("_services._dns-sd._udp.local","PTR");
 	
-	http.createServer(function(req,res){
+	let server=http.createServer(function(req,res){
 
 		function istype(type){
 			if(type == 'html' || type == 'css' || type== 'png' || type== 'ico'|| type=='js')
@@ -452,7 +521,7 @@ function main(){
 						});
 					});
 
-				}else  if(req.url.method == 'DELETE'){
+				}else  if(req.method == 'DELETE'){
 					res.write("DELETE");
 					res.end();
 
@@ -461,8 +530,7 @@ function main(){
 			}
 		}
 	}).listen(3001);
-
-
+	createWebsocketServer(server);
 }
 main();
 //module.exports

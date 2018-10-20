@@ -229,6 +229,7 @@
 <script>
 
 	function verbs(domain,port,name,type,method){
+		let mySocket = new WebSocket("ws://192.168.0.102:8080/socketserver", 'echo-protocol');
 		let data={};
 		data.domain=domain;
 		data.port=port;
@@ -256,6 +257,10 @@
 					$('.link-result').append(data.profile.toString());
 				else {
 					$('#queryresult').append(JSON.stringify(data.profile));
+					console.log(`${mySocket.onopen}`);
+					
+					mySocket.send(res);
+					// mySocket.close();
 				
 				}
 			}
@@ -367,8 +372,8 @@
 								res=content;
 							break;
 							
-							case 'subscription':	
-
+							case 'subscription':{
+								console.log("test");
 								res+=add_label("","col-sm-2 control-label","URL:");
 								res+=add_input("","form-control mr-sm-2 queryurl","text",`${type}/`);
 								res+="</br>";
@@ -383,6 +388,7 @@
 								res+=JSON.stringify(content);
 								res+=add_div("queryresult","","");
 
+							}	
 							break;
 							
 							case 'type':
