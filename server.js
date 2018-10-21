@@ -4,7 +4,7 @@ const fs=require('fs');
 const datetime=require('node-datetime');
 const decode = require('urldecode');
 const WebSocketServer = require('websocket').server;
-
+const WebSocketClient = require('websocket').client;
 
 class dnssd{
 	
@@ -540,12 +540,8 @@ function createWebsocketServer(server){
 	    console.log((new Date()) + ' Connection accepted.');
 	    connection.on('message', function(message) {
 	        if (message.type === 'utf8') {
-	            console.log('Received Message: ' + message.utf8Data);
+	        	// console.log(message.utf8Data);
 	            connection.sendUTF(message.utf8Data);
-	        }
-	        else if (message.type === 'binary') {
-	            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-	            connection.sendBytes(message.binaryData);
 	        }
 	    });
 	    connection.on('close', function(reasonCode, description) {
@@ -1160,6 +1156,31 @@ function subscribeComponet(serviceName,componets){
 
 	});
 }
+function websocketClientSendData(domain,serviceName,resource){
+	
+	let client = new WebSocketClient();
+	client.on('connectFailed', function(error) {
+	    console.log('Connect Error: ' + error.toString());
+	});
+	 
+	client.on('connect', function(connection) {
+	    console.log('WebSocket Client Connected');
+	    connection.on('error', function(error) {
+	        console.log("Connection Error: " + error.toString());
+	    });
+	    connection.on('close', function() {
+	        console.log('echo-protocol Connection Closed');
+	    });
+	    setInterval(function(){
+	    	fs.readFile(`profile/${serviceName}/${resource}/${serviceName}.json`,'utf8',function(err,data){
+	    		if(!err){
+	    			connection.sendUTF(data);
+	    		}
+	    	});
+	    },1000);
+	});
+	client.connect(`ws://${domain}/${resource}`, 'echo-protocol');
+}
 function main(){
 	
 	let Service= new Map();
@@ -1230,6 +1251,11 @@ function main(){
 	let componetsArr=[];
 	componetsArr.push(websocket);
 	componetsArr.push(webhook);
+
+	// websocketClientSendData(domain,serviceName,resource)
+	
+
+	setTimeout(()=>{websocketClientSendData(`${domain}.local:8080`,serviceName[1],websocket.resource)},1000);
 
 	setTimeout(()=>{subscribeComponet(serviceName[1],componetsArr)},500);
 	
