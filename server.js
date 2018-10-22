@@ -540,7 +540,6 @@ function createWebsocketServer(server){
 	    console.log((new Date()) + ' Connection accepted.');
 	    connection.on('message', function(message) {
 	        if (message.type === 'utf8') {
-	        	// console.log(message.utf8Data);
 	            connection.sendUTF(message.utf8Data);
 	        }
 	    });
@@ -680,9 +679,16 @@ function createServer(service,port){
 								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
 									if(!err){
 										console.log(`profile${req.url}/${e}.json`);
-							    		flag=false;
-										res.write(data);
-						    			res.end();
+										flag=false;
+										if(Array.isArray(JSON.parse(data))){
+											res.write(data);
+											res.end();
+										}else{
+											res.writeHead(101,[]);
+											// res.write(data);
+											res.end();
+										}
+						    			
 									}else{
 										res.write("false");
 										res.end();

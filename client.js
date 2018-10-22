@@ -101,10 +101,12 @@ function parseSRVTXT(packet){
 }
 
 function createWebsocketServer(server){
+	
 	wsServer = new WebSocketServer({
 	    httpServer: server,
 	    autoAcceptConnections: false
 	});
+	
 	function originIsAllowed(origin,resource) {
 	  // put logic here to detect whether the specified origin is allowed.
 	 	console.log(`origin = ${origin}   resource=${resource}`);
@@ -113,54 +115,18 @@ function createWebsocketServer(server){
 	}
  
 	wsServer.on('request', function(request) {
-	    if (!originIsAllowed(request.origin,request.resource)) {
+	    if (!originIsAllowed(request.origin)) {
 	      // Make sure we only accept requests from an allowed origin
 	      request.reject();
 	      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
 	      return;
 	    }
 	    
-	    let connection = request.accept('echo-protocol', request.origin);
-
+	    var connection = request.accept('echo-protocol', request.origin);
+	    console.log((new Date()) + ' Connection accepted.');
 	    connection.on('message', function(message) {
-
 	        if (message.type === 'utf8') {
-	            console.log('Received Message: ' + message.utf8Data);
-	            // try{
-
-	            	let queryData=JSON.parse(message.utf8Data);
-	            	console.log(`queryData url = ${queryData.service.domain}:${queryData.service.port}/${queryData.profile.resource}`);
-
-			        client.on('connect', function(connMdns) {
-
-					    connMdns.on('error', function(error) {
-					        console.log("connMdns Error: " + error.toString());
-					    });
-
-					    connMdns.on('close', function() {
-					        console.log('echo-protocol connMdns Closed');
-					    });
-				    
-				    	connMdns.on('message', function(message2) {
-
-					        if (message2.type === 'utf8') {
-
-					            console.log("Received: '" + message2.utf8Data + "'");
-					            connMdns.sendUTF(message2.utf8Data);
-
-					        }
-
-				    	});
-
-				    	connMdns.sendUTF("TEST");
-
-					});
-
-					client.connect(`ws://${queryData.service.domain}:${queryData.service.port}/${queryData.profile.resource}`, 'echo-protocol');
-
-	            // }catch(e){
-	            	// request.reject();
-	            // }   
+	            connection.sendUTF(message.utf8Data);
 	        }
 	    });
 	    connection.on('close', function(reasonCode, description) {
@@ -411,7 +377,8 @@ function main(){
 								data.profile=`statusCode:204`;
 								res.write(JSON.stringify(data));
 								res.end();
-							}	
+							}
+							
 						});
 						
 					});
@@ -502,22 +469,38 @@ function main(){
 				console.log(finaluri);
 
 				if(req.method=='GET'){
+					let obj={};
+					obj.query=finaluri;
+					obj.service={domain:domain,port:port};
+					
 
 					request.get(finaluri).on('response',function(response){
+						
 						response.on('error',function(err){
 							res.write("false");
 							res.end();		
-						})
-						response.on('data',function(data){
+						});
 
-							let obj={};
-							obj.query=finaluri;
-							obj.service={domain:domain,port:port};
-							obj.profile=JSON.parse(data.toString('utf8'));
-							obj.links=response.headers.link;
-							console.log(obj);
+						console.log(`response.statusCode=${response.statusCode}`);
+
+						if(response.statusCode == 101){
+							obj.profile=`statusCode=${response.statusCode}`;
 							res.write(JSON.stringify(obj));
 							res.end();
+						}
+						response.on('data',function(data){
+
+							obj.profile=JSON.parse(data.toString('utf8'));
+							obj.links=response.headers.link;
+							
+							console.log(data);
+
+							if(response.statusCode != 101 ){
+								res.write(JSON.stringify(obj));
+								res.end();
+							}	
+							console.log(obj);
+
 						});
 					});
 
