@@ -540,9 +540,24 @@ function createWebsocketServer(server){
 	    console.log((new Date()) + ' Connection accepted.');
 	    connection.on('message', function(message) {
 	        if (message.type === 'utf8') {
-	            connection.sendUTF(message.utf8Data);
+	        	console.log(`message.utf8Data :${message.utf8Data}`)
+	        	let queryData=JSON.parse(message.utf8Data);
+	        	console.log(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`);
+	        	setInterval(function(){
+	        		console.log("test");
+	        		// fs.readFile(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`,'utf8',function(err,data){
+	        		// 	console.log(data);
+	        		// 	connection.sendUTF(data);
+	        		// });
+	        		fs.readFile(`profile/${queryData.name}/${queryData.data}/${queryData.name}.json`,'utf8',function(err,data){
+	        			console.log(data);
+	        			connection.sendUTF(data);
+	        		});
+	        	},1000);
+	            
 	        }
 	    });
+	    
 	    connection.on('close', function(reasonCode, description) {
 	        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
 	    });
@@ -681,11 +696,13 @@ function createServer(service,port){
 										console.log(`profile${req.url}/${e}.json`);
 										flag=false;
 										if(Array.isArray(JSON.parse(data))){
+										
 											res.write(data);
 											res.end();
+										
 										}else{
+
 											res.writeHead(101,[]);
-											// res.write(data);
 											res.end();
 										}
 						    			
@@ -1185,6 +1202,7 @@ function websocketClientSendData(domain,serviceName,resource){
 	    	});
 	    },1000);
 	});
+	console.log(`ws://${domain}/${resource}`);
 	client.connect(`ws://${domain}/${resource}`, 'echo-protocol');
 }
 function main(){
@@ -1261,7 +1279,7 @@ function main(){
 	// websocketClientSendData(domain,serviceName,resource)
 	
 
-	setTimeout(()=>{websocketClientSendData(`${domain}.local:8080`,serviceName[1],websocket.resource)},1000);
+	// setTimeout(()=>{websocketClientSendData(`${domain}.local:8080`,serviceName[1],websocket.resource)},1000);
 
 	setTimeout(()=>{subscribeComponet(serviceName[1],componetsArr)},500);
 	

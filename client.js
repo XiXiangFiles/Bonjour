@@ -6,6 +6,7 @@ const decode = require('urldecode');
 const fs=require('fs');
 const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
+var threadStack=new Map();;
 
 function queryObj(name,type){
 	obj={};
@@ -126,7 +127,26 @@ function createWebsocketServer(server){
 	    console.log((new Date()) + ' Connection accepted.');
 	    connection.on('message', function(message) {
 	        if (message.type === 'utf8') {
-	            connection.sendUTF(message.utf8Data);
+	        	let clientData=JSON.parse(message.utf8Data);
+	        	console.log(`message.utf8Data= ${message.utf8Data}`);
+	            let client = new WebSocketClient();
+	            client.on('connectFailed',function(err){
+	            	console.log('Connect Error: ' + err.toString());
+	            });
+	            client.on('connect',function(connMDNS){
+	            	connection.on('error', function(err) {
+        				console.log("Connection Error: " + err.toString());
+    				});
+    				connMDNS.on('message', function(mDnsmsg) {
+				        if (mDnsmsg.type === 'utf8') {
+				            console.log("mDnsmsg Received: '" + mDnsmsg.utf8Data + "'");
+				            connection.sendUTF(mDnsmsg.utf8Data);
+				        }
+				    });
+				    connMDNS.sendUTF(message.utf8Data);
+	            });
+	            client.connect(`ws://${clientData.domain}:${clientData.port}/${clientData.data}`, 'echo-protocol');
+	           	console.log(`ws://${clientData.domain}:${clientData.port}/${clientData.data}`);
 	        }
 	    });
 	    connection.on('close', function(reasonCode, description) {
@@ -445,7 +465,7 @@ function main(){
 				let deurl=str.split('?');
 				let data = new Map();
 				let keyVal=deurl[1].split('&');
-				let domain,port,name,url,finaluri;
+				let domain,port,name,resource,url,finaluri;
 
 				keyVal.forEach(function(e){
 					let dekeyVal=e.split('=');
@@ -460,7 +480,8 @@ function main(){
 						url=val;
 					}else if(key == 'name'){
 						name=val;
-					}
+					}if(key == 'data')
+						resource=val;
 				}
 				
 				finaluri="http://"+domain+":"+port+"/"+name+'/'+url;
@@ -484,6 +505,7 @@ function main(){
 						console.log(`response.statusCode=${response.statusCode}`);
 
 						if(response.statusCode == 101){
+
 							obj.profile=`statusCode=${response.statusCode}`;
 							res.write(JSON.stringify(obj));
 							res.end();
