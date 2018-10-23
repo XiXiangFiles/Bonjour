@@ -5,6 +5,7 @@ const datetime=require('node-datetime');
 const decode = require('urldecode');
 const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
+var colors = require('colors');
 
 class dnssd{
 	
@@ -1049,46 +1050,73 @@ function generateWTM(serviceName,domain){
 		});
 	}
 	function model(serviceName,domain,properties,actions,subscription,things){
+		
+		let map=new Map();
 		function generateResource(serviceName,arrResource,type){
-			let resource=[];
+			
 			let promise=new Promise(function(resolve,reject){
+				let resource=[];
 				let count=0;
 				arrResource.forEach(function(e){
-					fs.readFile(e,'utf8',function(err,data){
-						let str="";
-						if(!err){
-							if(type == "properties"){
+					console.log(colors.green('%s'),e)
+					if(type != "actions"){
+						fs.readFile(e,'utf8',function(err,data){
+							let str="";
+							if(!err){
+								if(type == "properties"){
+									let obj=JSON.parse(data);
+									if(obj.values!=undefined)
+										str=`"${obj.id}":{"name":"${obj.id}","description":"none","values":${JSON.stringify(obj.values)}}`;
+									else
+										str=`"${obj.id}":{"name":"${obj.id}","description":"none","value":${JSON.stringify(obj.value)}}`;
+
+									resource.push(str);
+
+								}						
+							}
+							if(++count == arrResource.length){
+								resolve(resource);
+								console.log("\ntttt= "+resource.toString());
+							}
+						})
+					}else{
+						fs.readFile(`profile/${serviceName}/actions/${e}/${serviceName}.json`,'utf8',function(err,data){
+							if(!err){
 								let obj=JSON.parse(data);
-								if(obj.values!=undefined)
-									str=`${obj.id}:{name:${obj.id},description:"none",values:${JSON.stringify(obj.values)}}`;
+								if(obj[0].values!=undefined)
+									str=`"${obj[0].id}":{"name":"${obj[0].id}","description":"none","values":${JSON.stringify(obj[0].values)}}`;
 								else
-									str=`${obj.id}:{name:${obj.id},description:"none",value:${JSON.stringify(obj.value)}}`;
-
-								resource.push(str);
-
+									str=`"${obj[0].id}":{"name":"${obj[0].id}","description":"none","value":${JSON.stringify(obj[0].value)}}`;
+								
+								if(!resource.includes(str))
+									resource.push(str);
 							}
-							if(type=="actions"){
-								let obj=JSON.parse(data);
-								str=`${obj.id}:{value:${obj.value},state:${obj.status}}`;
-								resource.push(str);
+						})
+					}
+							
 
-							}
-						
-						}
-						if(++count == arrResource.length){
-							resolve(0);
-							console.log("\ntttt= "+resource.toString());
-							return resource.toString();
-						}
-					})
+					
 				});
 			});
+			// return promise;
 			promise.then(function(full){
-				if(full == 0)
-					return resource.toString();
+					map.set(type,full);
+					return full;
 			});
 		}
+
 		let promiseMode=new Promise(function(resolve,reject){
+
+
+			generateResource(serviceName,properties,"properties");
+
+			generateResource(serviceName,actions,"actions");
+			setTimeout(function(){
+				resolve(0)
+			},400);
+		});
+		promiseMode.then(function(full){
+
 			let obj={};
 			obj.id=serviceName;
 			obj.description="";
@@ -1099,30 +1127,14 @@ function generateWTM(serviceName,domain){
 			obj.links.properties={};
 			obj.links.properties.links="/properties";
 			obj.links.properties.title="List of Properties";
-			// obj.links.properties.resource=`${generateResource(serviceName,properties,"properties")}`;
-			let p=new Promise(function(resolve,reject){
-				console.log("\nIn promise = "+generateResource(serviceName,properties,"properties"));
-				resolve(generateResource(serviceName,properties,"properties"));
-			});
-			p.then(function(full){
-				obj.links.properties.resource=`${full}`;
-			});
-
+			obj.links.properties.resource=JSON.parse(`{${map.get("properties")}}`);
 			obj.links.actions={};
 			obj.links.actions.links="/actions";
 			obj.links.actions.title="List of actions";
-			let p2=new Promise(function(resolve,reject){
-				resolve(generateResource(serviceName,actions,"actions"));
-			});
-			p.then(function(full){
-				obj.links.actions.resource=`${full}`;
-			});
+			obj.links.actions.resource=JSON.parse(`{${map.get("actions")}}`);
 
-			resolve(obj);
-		});
-		promiseMode.then(function(full){
 
-			fs.writeFile(`profile/${serviceName}/model/${serviceName}.json`,JSON.stringify(full),function(err){
+			fs.writeFile(`profile/${serviceName}/model/${serviceName}.json`,JSON.stringify(obj),function(err){
 				if(!err)
 					console.log(`profile/${serviceName}/model/${serviceName}.json is saved`);
 			});
