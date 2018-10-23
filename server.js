@@ -5,7 +5,7 @@ const datetime=require('node-datetime');
 const decode = require('urldecode');
 const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
-var colors = require('colors');
+const colors = require('colors');
 
 class dnssd{
 	
@@ -545,10 +545,7 @@ function createWebsocketServer(server){
 	        	let queryData=JSON.parse(message.utf8Data);
 	        	console.log(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`);
 	        	setInterval(function(){
-	        		// fs.readFile(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`,'utf8',function(err,data){
-	        		// 	console.log(data);
-	        		// 	connection.sendUTF(data);
-	        		// });
+
 	        		fs.readFile(`profile/${queryData.name}/${queryData.data}/${queryData.name}.json`,'utf8',function(err,data){
 	        			// console.log(data);
 	        			connection.sendUTF(data);
@@ -579,8 +576,8 @@ function createServer(service,port){
 
 					if(req.url.length==(e.length+1)){
 
-						console.log(req.url.substring(1,e.length+1));
-					
+						console.log(colors.green('%s'), req.url.substring(1,e.length+1));
+						
 						fs.readFile(`profile/${e}/links`, function(err, data) {
 					    	if(!err){
 
@@ -622,7 +619,7 @@ function createServer(service,port){
 					    	if(!err){
 					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
 					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
-									console.log(`profile${req.url}/${e}.json`);
+									console.log(colors.green(`profile${req.url}/${e}.json`));
 						    		flag=false;
 									res.write(data);
 					    			res.end();
@@ -648,13 +645,13 @@ function createServer(service,port){
 					}
 					if((str=("/"+e+"/actions"))==req.url.substring(0,str.length)){
 						
-						console.log(`profile${req.url}/${e}.json`);
+						console.log(colors.green(`profile${req.url}/${e}.json`));
 						fs.readFile(`profile${req.url}/links`, function(err, data) {
 					    	if(!err){
 					    		
 					    		res.writeHead(200,{'Link':[data.toString('utf8')]});
 					    		fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
-									console.log(`profile${req.url}/${e}.json`);
+									console.log(colors.green(`profile${req.url}/${e}.json`));
 						    		flag=false;
 									res.write(data);
 					    			res.end();
@@ -663,7 +660,7 @@ function createServer(service,port){
 							}else{ 
 								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
 									if(!err){
-										console.log(`profile${req.url}/${e}.json`);
+										console.log(colors.green(`profile${req.url}/${e}.json`));
 							    		flag=false;
 										res.write(data);
 						    			res.end();
@@ -678,7 +675,7 @@ function createServer(service,port){
 					}
 					if((str=("/"+e+"/subscription"))==req.url.substring(0,str.length)){
 						
-						console.log(`profile${req.url}/${e}.json`);
+						console.log(colors.green(`profile${req.url}/${e}.json`));
 						fs.readFile(`profile${req.url}/links`, function(err, data) {
 					    	if(!err){
 					    		
@@ -693,7 +690,7 @@ function createServer(service,port){
 							}else{ 
 								fs.readFile(`profile${req.url}/${e}.json`,function(err,data){
 									if(!err){
-										console.log(`profile${req.url}/${e}.json`);
+										console.log(colors.green(`profile${req.url}/${e}.json`));
 										flag=false;
 										if(Array.isArray(JSON.parse(data))){
 										
@@ -1056,10 +1053,11 @@ function generateWTM(serviceName,domain){
 			
 			let promise=new Promise(function(resolve,reject){
 				let resource=[];
+				let actionResouce=new Set();
 				let count=0;
+				let length=arrResource.length;
 				arrResource.forEach(function(e){
-					console.log(colors.green('%s'),e)
-					if(type != "actions"){
+					
 						fs.readFile(e,'utf8',function(err,data){
 							let str="";
 							if(!err){
@@ -1072,30 +1070,29 @@ function generateWTM(serviceName,domain){
 
 									resource.push(str);
 
-								}						
+								}
+								if(type == "actions"){
+									actionResouce.add(data);
+								}				
 							}
 							if(++count == arrResource.length){
-								resolve(resource);
-								console.log("\ntttt= "+resource.toString());
-							}
-						})
-					}else{
-						fs.readFile(`profile/${serviceName}/actions/${e}/${serviceName}.json`,'utf8',function(err,data){
-							if(!err){
-								let obj=JSON.parse(data);
-								if(obj[0].values!=undefined)
-									str=`"${obj[0].id}":{"name":"${obj[0].id}","description":"none","values":${JSON.stringify(obj[0].values)}}`;
-								else
-									str=`"${obj[0].id}":{"name":"${obj[0].id}","description":"none","value":${JSON.stringify(obj[0].value)}}`;
-								
-								if(!resource.includes(str))
-									resource.push(str);
-							}
-						})
-					}
-							
+								if(type != "actions")
+									resolve(resource);
+								else{
+									let str="";
+									let count2=0;
+									actionResouce.forEach(function(e){
+										let obj=JSON.parse(e);
+										str=`"${obj.id}":{"name":"${obj.id}","description":"none","value":${JSON.stringify(obj.value)}}`;
+										resource.push(str);
+									});
+									resolve(resource);
 
+								}
+							}
+						});
 					
+
 				});
 			});
 			// return promise;
@@ -1133,14 +1130,13 @@ function generateWTM(serviceName,domain){
 			obj.links.actions.title="List of actions";
 			obj.links.actions.resource=JSON.parse(`{${map.get("actions")}}`);
 
-
 			fs.writeFile(`profile/${serviceName}/model/${serviceName}.json`,JSON.stringify(obj),function(err){
 				if(!err)
 					console.log(`profile/${serviceName}/model/${serviceName}.json is saved`);
 			});
 		})
 	}
-	model(serviceName,domain,properties,actionSet,subscriptions,things)
+	model(serviceName,domain,properties,actions,subscriptions,things)
 }
 function discribeAction(serviceName,doamin,actions){
 
