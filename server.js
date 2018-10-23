@@ -544,13 +544,12 @@ function createWebsocketServer(server){
 	        	let queryData=JSON.parse(message.utf8Data);
 	        	console.log(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`);
 	        	setInterval(function(){
-	        		console.log("test");
 	        		// fs.readFile(`profile/${queryData.name}/${queryData.type}/${queryData.name}.json`,'utf8',function(err,data){
 	        		// 	console.log(data);
 	        		// 	connection.sendUTF(data);
 	        		// });
 	        		fs.readFile(`profile/${queryData.name}/${queryData.data}/${queryData.name}.json`,'utf8',function(err,data){
-	        			console.log(data);
+	        			// console.log(data);
 	        			connection.sendUTF(data);
 	        		});
 	        	},1000);
@@ -946,7 +945,6 @@ function generateWTM(serviceName,domain){
 				break;
 
 				case 'subscription':
-						// console.log(path.path)
 						subscriptions.push(path.path);
 				break;
 
@@ -1002,7 +1000,6 @@ function generateWTM(serviceName,domain){
 									let promise=new Promise(function(resolve1,reject1){
 										// console.log(dataArry);
 										let subpath=path.split('/');
-										// console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/serviceName.json`);
 										fs.writeFile(`${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/${serviceName}.json`,dataArry,function(err){
 											if(!err){
 												console.log(`WTM actions folder is update (${subpath[3]})`);
@@ -1051,6 +1048,87 @@ function generateWTM(serviceName,domain){
 			});
 		});
 	}
+	function model(serviceName,domain,properties,actions,subscription,things){
+		function generateResource(serviceName,arrResource,type){
+			let resource=[];
+			let promise=new Promise(function(resolve,reject){
+				let count=0;
+				arrResource.forEach(function(e){
+					fs.readFile(e,'utf8',function(err,data){
+						let str="";
+						if(!err){
+							if(type == "properties"){
+								let obj=JSON.parse(data);
+								if(obj.values!=undefined)
+									str=`${obj.id}:{name:${obj.id},description:"none",values:${JSON.stringify(obj.values)}}`;
+								else
+									str=`${obj.id}:{name:${obj.id},description:"none",value:${JSON.stringify(obj.value)}}`;
+
+								resource.push(str);
+
+							}
+							if(type=="actions"){
+								let obj=JSON.parse(data);
+								str=`${obj.id}:{value:${obj.value},state:${obj.status}}`;
+								resource.push(str);
+
+							}
+						
+						}
+						if(++count == arrResource.length){
+							resolve(0);
+							console.log("\ntttt= "+resource.toString());
+							return resource.toString();
+						}
+					})
+				});
+			});
+			promise.then(function(full){
+				if(full == 0)
+					return resource.toString();
+			});
+		}
+		let promiseMode=new Promise(function(resolve,reject){
+			let obj={};
+			obj.id=serviceName;
+			obj.description="";
+			obj.tags=[];
+			obj.customField={};
+			obj.customField.domain=domain;
+			obj.links={};
+			obj.links.properties={};
+			obj.links.properties.links="/properties";
+			obj.links.properties.title="List of Properties";
+			// obj.links.properties.resource=`${generateResource(serviceName,properties,"properties")}`;
+			let p=new Promise(function(resolve,reject){
+				console.log("\nIn promise = "+generateResource(serviceName,properties,"properties"));
+				resolve(generateResource(serviceName,properties,"properties"));
+			});
+			p.then(function(full){
+				obj.links.properties.resource=`${full}`;
+			});
+
+			obj.links.actions={};
+			obj.links.actions.links="/actions";
+			obj.links.actions.title="List of actions";
+			let p2=new Promise(function(resolve,reject){
+				resolve(generateResource(serviceName,actions,"actions"));
+			});
+			p.then(function(full){
+				obj.links.actions.resource=`${full}`;
+			});
+
+			resolve(obj);
+		});
+		promiseMode.then(function(full){
+
+			fs.writeFile(`profile/${serviceName}/model/${serviceName}.json`,JSON.stringify(full),function(err){
+				if(!err)
+					console.log(`profile/${serviceName}/model/${serviceName}.json is saved`);
+			});
+		})
+	}
+	model(serviceName,domain,properties,actionSet,subscriptions,things)
 }
 function discribeAction(serviceName,doamin,actions){
 
@@ -1179,32 +1257,7 @@ function subscribeComponet(serviceName,componets){
 
 	});
 }
-function websocketClientSendData(domain,serviceName,resource){
-	
-	let client = new WebSocketClient();
-	client.on('connectFailed', function(error) {
-	    console.log('Connect Error: ' + error.toString());
-	});
-	 
-	client.on('connect', function(connection) {
-	    console.log('WebSocket Client Connected');
-	    connection.on('error', function(error) {
-	        console.log("Connection Error: " + error.toString());
-	    });
-	    connection.on('close', function() {
-	        console.log('echo-protocol Connection Closed');
-	    });
-	    setInterval(function(){
-	    	fs.readFile(`profile/${serviceName}/${resource}/${serviceName}.json`,'utf8',function(err,data){
-	    		if(!err){
-	    			connection.sendUTF(data);
-	    		}
-	    	});
-	    },1000);
-	});
-	console.log(`ws://${domain}/${resource}`);
-	client.connect(`ws://${domain}/${resource}`, 'echo-protocol');
-}
+
 function main(){
 	
 	let Service= new Map();
@@ -1266,20 +1319,20 @@ function main(){
 	websocket.type="websocket";
 	websocket.resource="properties/temperature";
 
+
+/*
 	let webhook={};
 	webhook.id="test_Webhook";
 	webhook.type="webhook";
 	webhook.resource="properties/temperature";
 	webhook.callbackUrl="http://test";
-
+*/
 	let componetsArr=[];
 	componetsArr.push(websocket);
-	componetsArr.push(webhook);
+	// componetsArr.push(webhook);
 
 	// websocketClientSendData(domain,serviceName,resource)
 	
-
-	// setTimeout(()=>{websocketClientSendData(`${domain}.local:8080`,serviceName[1],websocket.resource)},1000);
 
 	setTimeout(()=>{subscribeComponet(serviceName[1],componetsArr)},500);
 	
