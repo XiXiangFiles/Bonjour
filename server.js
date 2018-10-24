@@ -603,9 +603,11 @@ function createServer(service,port){
 						fs.readFile('profile/'+e+"/model/"+e+".json", function(err, data) {
 					    	if(!err){
 					    		flag=false;
+					    		res.writeHead(200,[]);
 								res.write(data);
 				    			res.end();
 							}else{ 
+								res.writeHead(204,[]);
 								res.write("false");
 								res.end();
 							}
@@ -631,9 +633,11 @@ function createServer(service,port){
 									if(!err){
 										console.log(colors.green(`profile${req.url}/${e}.json`));
 							    		flag=false;
+							    		res.writeHead(200,[]);
 										res.write(data);
 						    			res.end();
 									}else{
+										res.writeHead(204,[]);
 										res.write("false");
 										res.end();
 									}
@@ -662,9 +666,11 @@ function createServer(service,port){
 									if(!err){
 										console.log(colors.green(`profile${req.url}/${e}.json`));
 							    		flag=false;
+							    		res.writeHead(200,[]);
 										res.write(data);
 						    			res.end();
 									}else{
+										res.writeHead(204,[]);
 										res.write("false");
 										res.end();
 									}
@@ -693,7 +699,7 @@ function createServer(service,port){
 										// console.log(colors.green(`profile${req.url}/${e}.json`));
 										flag=false;
 										if(Array.isArray(JSON.parse(data))){
-										
+											res.writeHead(200,[]);
 											res.write(data);
 											res.end();
 										
@@ -704,6 +710,7 @@ function createServer(service,port){
 										}
 						    			
 									}else{
+										res.writeHead(204,[]);
 										res.write("false");
 										res.end();
 									}
@@ -757,6 +764,7 @@ function createServer(service,port){
 					count++;
 				});
 				if(count==Service.length){
+					res.writeHead(204,[]);
 					res.write("false");
 					res.end();
 				}
@@ -820,6 +828,7 @@ function createServer(service,port){
 					count++;
 				});
 				if(count==Service.length){
+					res.writeHead(204,[]);
 					res.write("false");
 					res.end();
 				}
@@ -885,7 +894,15 @@ function generateWTMofVal(serviceName,floder,content){
 	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
 		fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
 	 		if (!err)
-	  			console.log(colors.yellow('WTM val is saved!'));
+	  			console.log(colors.yellow(`${serviceName}/${floder} :\tWTM val is saved!`));
+		});
+	});
+}
+function generateWTMLink(serviceName,floder,content){
+	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
+		fs.writeFile('profile/'+serviceName+'/'+floder+'/links',content, function (err) {
+	 		if (!err)
+	  			console.log(colors.yellow(`${serviceName}/${floder} :\tWTM links is saved!`));
 		});
 	});
 }
@@ -898,12 +915,14 @@ function gpsSensor(){
 function temperatureSensor(serviceName,id,name){
 	
 	let dt = datetime.create();
+	let link=`<model/>; rel="model"`
 	let obj={};
 	obj.id=id;
 	obj.name;
 	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
 	console.log(obj);
 	generateWTMofVal(serviceName,'properties/'+id,obj);
+	generateWTMLink(serviceName,`properties/${id}`,link);
 }
 
 
@@ -961,15 +980,10 @@ function generateWTM(serviceName,domain){
 						if(propertiesContent.length == properties.length){
 							let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
 							if(domain !== undefined){
-								fs.writeFile(`profile/${serviceName}/properties/links`,link, function (err) {
-									if (!err)
-										console.log(colors.yellow('WTM properties link val is saved!'));
-								});
+								generateWTMLink(serviceName,`properties/`,link);
 							}
-							fs.writeFile('profile/'+serviceName+'/properties/'+serviceName+".json",JSON.stringify(propertiesContent), function (err) {
-						 		if (!err)
-						  			console.log(colors.yellow('WTM properties val is saved!'));
-							});
+							generateWTMofVal(serviceName,`properties/`,propertiesContent);
+
 						}
 					}catch(e){
 						console.log(e);
@@ -1028,16 +1042,14 @@ function generateWTM(serviceName,domain){
 		let count=0;
 		subscriptions.forEach(function(subscription){
 			let promise=new Promise(function(resolve,reject){
-				console.log("test subscription= "+subscription);
+				// console.log("test subscription= "+subscription);
 				fs.readFile(subscription,'utf8',function(err,data){
 					if(!err){
 						arr.push(JSON.parse(data));
 					}
 					if(++count == subscriptions.length){
-						fs.writeFile(`profile/${serviceName}/subscription/${serviceName}.json`,JSON.stringify(arr),function(err){
-							if(!err)
-								console.log(colors.yellow(`profile/${serviceName}/subscription/${serviceName}.json`));
-						});
+						generateWTMofVal(serviceName,`subscription/`,arr);
+
 					}
 				});
 				resolve(0);
@@ -1131,10 +1143,8 @@ function generateWTM(serviceName,domain){
 			obj.links.actions.title="List of actions";
 			obj.links.actions.resource=JSON.parse(`{${map.get("actions")}}`);
 
-			fs.writeFile(`profile/${serviceName}/model/${serviceName}.json`,JSON.stringify(obj),function(err){
-				if(!err)
-					console.log(colors.yellow(`profile/${serviceName}/model/${serviceName}.json is saved`));
-			});
+			generateWTMofVal(serviceName,`model/`,obj);
+
 		})
 	}
 	model(serviceName,domain,properties,actions,subscriptions,things)
@@ -1157,19 +1167,10 @@ function discribeAction(serviceName,doamin,actions){
 		// To save the actions of description.
 		demoActions(serviceName,key,actionDemo,"create");
 	});
-	fs.mkdir(`profile/${serviceName}/actions`,function(err){
-		
-		fs.writeFile(`profile/${serviceName}/actions/links`,links, function (err) {
-			if (!err)
-				console.log(colors.yellow('WTM actions link val is saved!'));
-		});
-		fs.writeFile('profile/'+serviceName+'/actions/'+serviceName+".json",JSON.stringify(res), function (err) {
-			if (!err)
-				console.log(colors.yellow('WTM actions val is saved!'));
-		});
 
-	});
-	
+	generateWTMLink(serviceName,`actions/`,links);
+	generateWTMofVal(serviceName,`actions/`,res);
+
 	return JSON.stringify(res);
 
 }
@@ -1194,26 +1195,21 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 				properties.add(JSON.stringify(obj));
 			});
 			fs.mkdir(`profile/${serviceName}/actions/${floder}`,function(err){
-				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(arr),function(err){
-					if (!err)
-					  	console.log(colors.yellow(`WTM actions ${floder} val is saved!`));
-				});
+				
+				generateWTMofVal(serviceName,`actions/${floder}`,arr);
+			
 				arr.forEach(function(e){
-					fs.mkdir(`profile/${serviceName}/actions/${floder}/${e.id}`,function(err){
-						fs.writeFile(`profile/${serviceName}/actions/${floder}/${e.id}/${serviceName}.json`,JSON.stringify(e),function(err){
-							if (!err)
-							  	console.log(colors.yellow(`WTM actions ${floder}/${e.id}/${serviceName}.json val is saved!`));
-						});
-					});
+
+					generateWTMofVal(serviceName,`actions/${floder}/${e.id}`,e);
+					
 				});
 				properties.forEach(function(e){
 					let data=JSON.parse(e);
-					fs.mkdir(`profile/${serviceName}/properties/${data.id}`,function(err){
-							fs.writeFile(`profile/${serviceName}/properties/${data.id}/${serviceName}.json`,e,function(err){
-								if (!err)
-								  	console.log(colors.yellow(`WTM properties ${data.id}/${serviceName}.json val is saved!`));
-							});
-					});
+					// generateWTMLink(serviceName,`properties/${id}`,link);
+					let link=`<model/>; rel"model"`;
+					generateWTMLink(serviceName,`properties/${data.id}`,link);
+					generateWTMofVal(serviceName,`properties/${data.id}`,data);
+					
 				});
 			});
 			return 0;
