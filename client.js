@@ -6,7 +6,7 @@ const decode = require('urldecode');
 const fs=require('fs');
 const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
-var threadStack=new Map();;
+const colors = require('colors');
 
 function queryObj(name,type){
 	obj={};
@@ -125,24 +125,31 @@ function createWebsocketServer(server){
 	    
 	    var connection = request.accept('echo-protocol', request.origin);
 	    console.log((new Date()) + ' Connection accepted.');
+
 	    connection.on('message', function(message) {
 	        if (message.type === 'utf8') {
+
 	        	let clientData=JSON.parse(message.utf8Data);
 	        	console.log(`message.utf8Data= ${message.utf8Data}`);
 	            let client = new WebSocketClient();
+
 	            client.on('connectFailed',function(err){
 	            	console.log('Connect Error: ' + err.toString());
 	            });
+
 	            client.on('connect',function(connMDNS){
+
 	            	connection.on('error', function(err) {
         				console.log("Connection Error: " + err.toString());
     				});
+    				
     				connMDNS.on('message', function(mDnsmsg) {
 				        if (mDnsmsg.type === 'utf8') {
-				            console.log("mDnsmsg Received: '" + mDnsmsg.utf8Data + "'");
+				            // console.log("mDnsmsg Received: '" + mDnsmsg.utf8Data + "'");
 				            connection.sendUTF(mDnsmsg.utf8Data);
 				        }
 				    });
+
 				    connMDNS.sendUTF(message.utf8Data);
 	            });
 	            client.connect(`ws://${clientData.domain}:${clientData.port}/${clientData.data}`, 'echo-protocol');
@@ -218,13 +225,13 @@ function main(){
 							try{
 								temp.forEach(function(e){
 									if(check.has(e)===false){	
-										console.log("delete\t "+ e );
+										console.log(colors.red("delete %s"),e);
 										mdnsService.delete(e);	
-																		}
+									}
 								});
 								temp.clear();
 							}catch(error){
-								console.log("temp error: "+ error);
+								console.log(colors.red("temp error: %s"),error);
 							}
 						},3000);
 					});
@@ -389,8 +396,8 @@ function main(){
 						finaluri=`http://${domain}:${port}/${name}/${url}`;
 						finaluri=decode(finaluri);
 
-						console.log(`finaluri=${finaluri}`);
-						console.log(`data=${content}`);
+						console.log(colors.green(`finaluri=${finaluri}`));
+						console.log(colors.green(`data=${content}`));
 						request.put({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ /* ... */ 
 							if(httpResponse.statusCode == 204 ){
 								let data={};
@@ -434,8 +441,8 @@ function main(){
 						finaluri=`http://${domain}:${port}/${name}/${url}`;
 						finaluri=decode(finaluri);
 
-						console.log(`finaluri=${finaluri}`);
-						console.log(`data=${queryData}`);
+						console.log(colors.green(`finaluri=${finaluri}`));
+						console.log(colors.green(`data=${queryData}`));
 						request.post({url:finaluri, form: {data:queryData}}, function(err,httpResponse,body){ 
 							if(!err){
 								if(httpResponse.statusCode == 204 ){
@@ -487,7 +494,7 @@ function main(){
 				finaluri="http://"+domain+":"+port+"/"+name+'/'+url;
 				finaluri=decode(finaluri);
 
-				console.log(finaluri);
+				console.log(colors.green('%s'),finaluri);
 
 				if(req.method=='GET'){
 					let obj={};
@@ -502,7 +509,7 @@ function main(){
 							res.end();		
 						});
 
-						console.log(`response.statusCode=${response.statusCode}`);
+						console.log(colors.green(`response.statusCode=${response.statusCode}`));
 
 						if(response.statusCode == 101){
 

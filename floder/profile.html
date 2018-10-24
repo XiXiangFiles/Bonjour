@@ -16,142 +16,8 @@
 	<link href="css/form-validation.css" rel="stylesheet">
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="/js/DomElements.js"></script>
-	<!-- <link href="css/grid.css" rel="stylesheet"> -->
-	<style>
-	h2{
-		margin: 0.5em 0em 0em 0em;
-	}
-	.node circle {
-		cursor: pointer;
-		stroke: #3182bd;
-		stroke-width: 1.5px;
-	}
+	<link href="css/profile.css" rel="stylesheet">
 
-	.node text {
-		font: 10px sans-serif;
-		pointer-events: none;
-		text-anchor: middle;
-	}
-
-	line.link {
-		fill: none;
-		stroke: #9ecae1;
-		stroke-width: 1.5px;
-	}
-	button{
-		background-color: #343a40;
-		border: #343a40;
-	}
-	#programNum{
-		    margin-left: 80%;
-    		border: solid red;
-	}
-	.saveWorkshop ,.clearWorkshop{
-		margin-left: 37%;
-    	margin-bottom: 5%;
-    	background-color: black;
-	}
-	svg{
-		    margin-left: 24%;
-	}
-	.group{
-		display: none;
-	}
-	.row {
-	  margin-bottom: 1rem;
-	}
-	.row .row {
-	  margin-top: 1rem;
-	  margin-bottom: 0;
-	}
-	[class*="col-"] {
-	  padding-top: 0rem;
-	  padding-bottom: 0rem;
-	  
-	}
-	.disposeJoin{
-		background-color: rgba(86, 61, 124, .15);
-	  	border: 1px solid rgba(86, 61, 124, .2);
-	}
-	.disposeJoinArea{
-		margin-left: 20%;
-		margin-bottom: 0%;
-	}
-	.ReqDonebtn , .Reqbtn{
-		background-color: rgba(230,226,235);
-	}
-	.sentReq{
-		background-color: rgb(230,226,235);
-	}
-	.agenda {  }
-
-/* Dates */
-	.agenda .agenda-date { width: 16%;; }
-	.agenda .agenda-date .dayofmonth {
-	  width: 40px;
-	  font-size: 36px;
-	  line-height: 36px;
-	  float: left;
-	  text-align: right;
-	  margin-right: 10px; 
-	}
-	.agenda .agenda-date .shortdate {
-	  font-size: 0.75em; 
-	}
-
-
-	/* Times */
-	.agenda .agenda-time {     width: 36%;} 
-
-
-	/* Events */
-	.agenda .agenda-events {  } 
-	.agenda .agenda-events .agenda-event {  } 
-	.workshop_btn{
-		background-color: #5599FF;
-		color:white;
-	}
-	.logo{
-		width: 2em;
-	}
-	.txt{
-		color:red;
-	}
-	.profilecontent{
-		margin-left: 1.9%;
-		width: 80%;	
-	}
-	.links{
-		width : 44%;
-		margin: -1.2% 0% 0% 1%;
-	}
-	.content{
-		margin-top :3%;
-	}
-	.profile{
-		width:55%;
-	}
-	.link-content{
-		width:45%;
-	}
-	.link-result{
-		background-color:#343a4024;
-		height:100%;
-		padding: 2% 2% 0% 3%;
-	}
-	#queryresult{
-		background-color:white;
-	}	
-	button{
-		margin-right:1%;	
-	}
-	header{
-		height:50%;
-	}
-	@media (max-width: 767px) {
-	    
-	}
-	</style>
 </head>
 </head>
 <body>
@@ -227,9 +93,10 @@
 
 </html>
 <script>
+	let mySocket;
 
 	function verbs(domain,port,name,type,method){
-		let mySocket = new WebSocket("ws://192.168.0.102:8080/socketserver", 'echo-protocol');
+		
 		let data={};
 		data.domain=domain;
 		data.port=port;
@@ -243,6 +110,13 @@
 		data.data=$('.queryData').val().trim();
 		data.data.trim();
 		console.log(data);
+		if(mySocket == undefined)
+			mySocket = new WebSocket("ws://140.119.143.79:3001/socketserver", 'echo-protocol');
+
+		if(method=="DELETE"){
+			mySocket.close();
+			mySocket=undefined;
+		}
 
 		$.ajax({
 			url:"query",
@@ -250,22 +124,27 @@
 			cache:false,
 			data:data,
 			success:function(res){
-				let data=JSON.parse(res);
+				let responseData=JSON.parse(res);
 				console.log(res);
 				$('#queryresult').empty();
-				if( data.profile== false)
-					$('.link-result').append(data.profile.toString());
+				if( responseData.profile== false)
+					$('.link-result').append(responseData.profile.toString());
 				else {
-					$('#queryresult').append(JSON.stringify(data.profile));
-					console.log(`${mySocket.onopen}`);
-					
-					mySocket.send(res);
-					// mySocket.close();
-				
+					$('#queryresult').append(JSON.stringify(responseData.profile));
+					try{
+						if(responseData.profile.trim()=="statusCode=101"){
+							if(mySocket != undefined)
+							mySocket.send(JSON.stringify(data));
+							mySocket.onmessage = function(e) {
+						  		console.log(e.data);
+							}
+						}
+					}catch(e){
+						console.log(`websocket error : ${e}`);
+					}
 				}
 			}
 		});
-
 	}
 	function queryLinks(domain,port,name,type,method){
 		let data={};
@@ -289,42 +168,19 @@
 				$('.link-result').empty();
 
 				if( data.profile== false)
-					$('.link-result').append(data.profile.toString());
+					$('.link-result').append("NO CONTENT");
 				else {
 					function content(type,content,query){
 						console.log(content);
 						let res="";
-						let btn=['GET','POST','PUT','DELETE'];
+						let btn=['GET','POST','PUT','DELETE','OPTIONS'];
 
 						switch(type){
 							case 'model':
-								console.log("content= "+content);
-								let result=JSON.parse(content);
-								res=add_label("","col-sm-2 control-label","ID");
-								res+=add_label("","col-sm-10 form-control profilecontent",result.id);
-								res+=add_label("","col-sm-2 control-label","NAME");
-								res+=add_label("","col-sm-10 form-control profilecontent",result.name);
-								res+=add_label("","col-sm-2 control-label","createdAt");
-								res+=add_label("","col-sm-10 form-control profilecontent",result.createdAt);
-								res+=add_label("","col-sm-2 control-label","updateAt");
-								res+=add_label("","col-sm-10 form-control profilecontent",result.updateAt);
-								res+=add_label("","col-sm-2 control-label","Description");
-								res+=add_label("","col-sm-10 form-control profilecontent",result.description);
-								res+=add_label("","col-sm-2 control-label","Tags");
-								res+=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.tags));
-								res+=add_label("","col-sm-2 control-label","customFields");
-								res+=add_label("","col-sm-10 form-control profilecontent",JSON.stringify(result.customFields));
-								res+=add_label("","col-sm-2 control-label","Links");
-								res+="</br>";
-								for(let i=0;i<Object.keys(result.links).length;i++){
-									let j=0;
-									Object.entries(result.links)[i].forEach(function(e){
-										if(j++ % 2 == 0){
-											console.log(e);
-											res+=add_button("","btn btn-info",e);
-										}
-									});
-								}	
+
+								console.log("content= "+JSON.stringify(content));
+								let result=content;
+								res=JSON.stringify(content);
 
 							break;
 							
@@ -340,7 +196,7 @@
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
 								res+="</br>";
 								btn.forEach(function(e){
-									if(e=="PUT" || e=="GET")
+									if(e=="OPTIONS" ||e=="PUT" || e=="GET")
 										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
@@ -359,7 +215,7 @@
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
 								res+="</br>";
 								btn.forEach(function(e){
-									if(e=="PUT" || e=="GET" || e=="POST")
+									if(e=="OPTIONS" || e=="PUT" || e=="GET" || e=="POST")
 										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
@@ -368,9 +224,6 @@
 
 							break;
 							
-							case 'things':
-								res=content;
-							break;
 							
 							case 'subscription':{
 								console.log("test");
@@ -381,7 +234,7 @@
 								res+=add_input("","form-control mr-sm-2 queryData","text"," ");
 								res+="</br>";
 								btn.forEach(function(e){
-									if(e=="GET" || e=="DELETE")
+									if(e=="GET" || e=="DELETE" || e=="OPTIONS")
 										res+=add_button("","btn btn-info verb",e,`verbs('${domain}','${port}','${name}','${$('.queryurl').val()}','${e}')`);
 								});
 								res+="<br>";
@@ -390,31 +243,16 @@
 
 							}	
 							break;
-							
-							case 'type':
-								res=content;
-							break;
-							
-							case 'help':	
-								res=content;
-							break;
-							
-							case 'ui':
-								res=content;
-							break;
-							
-							case 'custom':
-								res=content;
-							break;
+
+							default:
+								res="NO CONTENT";
+							// break;
 						}
 						return res;
 					}
 
-					$('.link-result').append(content(type,data.profile,data.query));
-					
+					$('.link-result').append(content(type,data.profile,data.query));	
 				}
-
-
 			}
 
 		});
