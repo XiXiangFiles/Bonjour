@@ -6,6 +6,7 @@ const decode = require('urldecode');
 const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
 const colors = require('colors');
+const lottery = require ('./sensor/lottery');
 
 class dnssd{
 	
@@ -1182,6 +1183,7 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 	console.log(`floder = ${floder}  cmd = ${cmd}`);
 	let arr=[];
 	let properties=new Set();
+	let device=new lottery();
 	switch(cmd){
 		case 'create':
 
@@ -1235,6 +1237,7 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 					  	generateWTM(serviceName,undefined);
 					}
 				});
+				device.start();
 			});
 			return 0;
 		break;
