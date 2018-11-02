@@ -1183,8 +1183,19 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 	console.log(`floder = ${floder}  cmd = ${cmd}`);
 	let arr=[];
 	let properties=new Set();
-	let device=new lottery();
+	lottery.listen();
+	let deviceLog="";
+	lottery.on('data',function(e){
+		deviceLog+=e;
+		if(deviceLog.includes('close')){
+			demoActions(serviceName,floder,idOfValue,"stop");
+			deviceLog="";
+		}
+
+	});
+
 	switch(cmd){
+
 		case 'create':
 
 			idOfValue.forEach(function(val,key){
@@ -1217,6 +1228,35 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 			return 0;
 		break;
 
+
+		case 'ready':
+
+			console.log("into Damo actions");
+			idOfValue.forEach(function(val,key){
+				let obj={};
+				obj.id=key;
+				obj.value="ready";
+				obj.status="ready";
+				obj.timestamp=dt.format('Y-m-d H:M:S');
+				let path=floder.split('/');
+				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err){
+					  	console.log(colors.yellow(`WTM actions actions/${floder}/${serviceName}.json val is updated`));
+					}
+				});
+				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err){
+					  	console.log(colors.yellow(`WTM properties /${path[1]}/${serviceName}.json val is updated`));
+					  	generateWTM(serviceName,undefined);
+					}
+				});
+				lottery.ready();
+			});
+
+			return 0;
+
+		break;
+
 		case 'start':
 			console.log("into Damo actions");
 			idOfValue.forEach(function(val,key){
@@ -1237,8 +1277,34 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 					  	generateWTM(serviceName,undefined);
 					}
 				});
-				device.start();
+				lottery.start();
 			});
+			return 0;
+		break;
+	
+		case 'stop':
+			console.log("into Damo actions");
+			idOfValue.forEach(function(val,key){
+				let obj={};
+				obj.id=key;
+				obj.value="stop";
+				obj.status="stop";
+				obj.timestamp=dt.format('Y-m-d H:M:S');
+				let path=floder.split('/');
+				fs.writeFile(`profile/${serviceName}/actions/${floder}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err){
+					  	console.log(colors.yellow(`WTM actions actions/${floder}/${serviceName}.json val is updated`));
+					}
+				});
+				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
+					if (!err){
+					  	console.log(colors.yellow(`WTM properties /${path[1]}/${serviceName}.json val is updated`));
+					  	generateWTM(serviceName,undefined);
+					}
+				});
+				
+			});
+
 			return 0;
 		break;
 
@@ -1314,7 +1380,7 @@ function main(){
 	setTimeout(()=>{temperatureSensor(serviceName[1],"temperature","DEMO 1")},100);
 
 	let actions=new Map();
-	actions.set("Demo_actions_start","the resource start");
+	actions.set("Demo_lottery","the resource start");
 	actions.set("Demo_actions_restart","the resource restart");
 
 	// discribeAction(serviceName,doamin,actions)

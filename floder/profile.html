@@ -110,8 +110,12 @@
 		data.data=$('.queryData').val().trim();
 		data.data.trim();
 		console.log(data);
-		if(mySocket == undefined)
-			mySocket = new WebSocket("ws://140.119.143.79:3001/socketserver", 'echo-protocol');
+		if(mySocket == undefined){
+			let url=document.URL;
+			url=url.split('/');
+			mySocket = new WebSocket(`ws://${url[2]}/socketserver`, 'echo-protocol');
+		}
+			
 
 		if(method=="DELETE"){
 			mySocket.close();
@@ -246,11 +250,9 @@
 
 							default:
 								res="NO CONTENT";
-							// break;
 						}
 						return res;
 					}
-
 					$('.link-result').append(content(type,data.profile,data.query));	
 				}
 			}
