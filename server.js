@@ -7,6 +7,7 @@ const WebSocketServer = require('websocket').server;
 const WebSocketClient = require('websocket').client;
 const colors = require('colors');
 const lottery = require ('./sensor/lottery');
+const sensor = require('./sensor/temperature.js');
 
 class dnssd{
 	
@@ -907,26 +908,38 @@ function generateWTMLink(serviceName,floder,content){
 		});
 	});
 }
-function gpsSensor(){
-
-	let temperature=Math.floor((Math.random() * 20) + 1);
-
-}
 
 function temperatureSensor(serviceName,id,name){
+
+
+		let promise=new Promise(function(resolve,reject){
+				
+			sensor.on('data',function(e){
+				console.log(colors.red('%s'),e)
+				let data=JSON.parse(e);
+				let dt = datetime.create();
+				let link=`<model/>; rel="model"`
+				let obj={};
+				obj.id=id;
+				obj.name;
+				obj.values={};
+				obj.values.timestamp=data.timestamp;
+				obj.values.temperature=data.temperature;
+				obj.values.humidity=data.humidity;
+				generateWTMofVal(serviceName,'properties/'+id,obj);
+				generateWTMLink(serviceName,`properties/${id}`,link);
+				resolve(`%{JSON.stringify(obj)}<;>${link}`);
+			});
+		}).then(function(full,reject){
+			let resolve=full.split('<;>');
+			let obj=JSON.parse(resolve[0]);
+			let link=resolve[1];
+
+		});
 	
-	let dt = datetime.create();
-	let link=`<model/>; rel="model"`
-	let obj={};
-	obj.id=id;
-	obj.name;
-	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
-	console.log(obj);
-	generateWTMofVal(serviceName,'properties/'+id,obj);
-	generateWTMLink(serviceName,`properties/${id}`,link);
+	
+//	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
 }
-
-
 
 function generateWTM(serviceName,domain){
 
@@ -1113,6 +1126,7 @@ function generateWTM(serviceName,domain){
 			promise.then(function(full){
 					map.set(type,full);
 					return full;
+			}).catch(function(rej){
 			});
 		}
 

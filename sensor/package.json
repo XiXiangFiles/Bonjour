@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "events": "^3.0.0",
+    "node-datetime": "^2.1.2",
+    "node-dht-sensor": "0.0.34",
     "serialport": "^7.0.2"
   }
 }
