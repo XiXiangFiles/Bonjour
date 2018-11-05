@@ -1,2 +1,0 @@
-Link: <http://testdomain.local:8080/testResource2/properties/>;rel="type"
-[{"id":"temperature","values":{"values":3,"timestamp":"2018-10-12 13:53:50"}},{"id":"temperature2","values":{"values":17,"timestamp":"2018-10-12 13:53:50"}}]
