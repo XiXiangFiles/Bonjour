@@ -5,7 +5,7 @@ const datetime=require('node-datetime');
 function TemperatureSensor(){
 	events.EventEmitter.call(this);
 	let device=this;
-	setInterval(function(){
+	function getSensorData(){
 		sensor.read(11,4,function(err,temperature,humidity){
 		
 			let dt = datetime.create();
@@ -18,11 +18,12 @@ function TemperatureSensor(){
 				device.emit('data',JSON.stringify(obj)); }
 
 		});
-	},1000);
+	}
+	getSensorData();
+	setInterval(()=>{getSensorData()},1000);
 	
 }
+
 TemperatureSensor.prototype.__proto__=events.EventEmitter.prototype;
-
-
 
 module.exports=new TemperatureSensor();
