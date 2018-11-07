@@ -1,6 +1,6 @@
-const sensor=require('node-dht-sensor');
-const events=require('events');
-const datetime=require('node-datetime');
+const sensor=require('../node_modules/node-dht-sensor');
+const events=require('../node_modules/events');
+const datetime=require('../node_modules/node-datetime');
 
 function TemperatureSensor(){
 	events.EventEmitter.call(this);

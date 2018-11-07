@@ -1,5 +1,5 @@
-const Serial=require('serialport');
-const events=require('events');
+const Serial=require('../node_modules/serialport');
+const events=require('../node_modules/events');
 const port= new Serial('/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_8543034393735181F140-if00',{baudRate : 9600});
 
 
