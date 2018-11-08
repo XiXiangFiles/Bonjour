@@ -21,19 +21,8 @@ function LotteryDevice(){
 		});
 	}
 }
+
 LotteryDevice.prototype.__proto__=events.EventEmitter.prototype;
-
-/*
-let device= new LotteryDevice();
-device.listen();
-device.on('data',(e)=>{
-	console.log(e);
-})
-setTimeout(function(){
-	device.start();
-},3000);
-*/
-
 module.exports=new LotteryDevice();
-//module.exports=msg;
+
 

@@ -422,7 +422,6 @@ function generateWTMLink(serviceName,floder,content){
 
 function temperatureSensor(serviceName,id,name){
 
-
 		let promise=new Promise(function(resolve,reject){
 				
 			sensor.on('data',function(e){
@@ -442,13 +441,8 @@ function temperatureSensor(serviceName,id,name){
 				resolve(`%{JSON.stringify(obj)}<;>${link}`);
 			});
 		}).then(function(full,reject){
-			let resolve=full.split('<;>');
-			let obj=JSON.parse(resolve[0]);
-			let link=resolve[1];
 
 		});
-	
-	
 //	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
 }
 
@@ -877,7 +871,7 @@ function main(){
 	
 	bonjour.setup(Instance,Service,txt,domain,120);
 	bonjour.start();
-	bonjour.on('data',function(response){
+	bonjour.on('sendData',function(response){
 
 	});
 	// serverStart(Instance,Service,txt,domain,120); //serverStart(Instance,Service,txt,domain,ttl)

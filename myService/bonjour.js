@@ -31,7 +31,7 @@ function bonjourServer(){
 			query.questions.forEach(function(e){
 				if(e.type=="PTR" && e.name =="_services._dns-sd._udp.local"){
 
-					bonjour.emit('data',p1.responsePTRofDNSSD());
+					bonjour.emit('sendData',p1.responsePTRofDNSSD());
 					mdns.respond(p1.responsePTRofDNSSD());
 
 				}
@@ -53,7 +53,7 @@ function bonjourServer(){
 			if(getServicename.has('PTR') && getServicename.size == 1 && checkService.has(PTRservice ) ){
 
 				if(p1.responsePTR( Instance ,PTRservice ) != false ){
-					bonjour.emit('data',p1.responsePTR(Instance,PTRservice));
+					bonjour.emit('sendData',p1.responsePTR(Instance,PTRservice));
 					mdns.respond(p1.responsePTR(Instance,PTRservice ));
 				}
 
@@ -75,7 +75,7 @@ function bonjourServer(){
 
 				if(p1.responsePTRTXT(instance,service)!= false ){
 					mdns.respond(p1.responsePTRTXT(instance,service));
-					bonjour.emit('data',p1.responsePTRTXT(instance,service));
+					bonjour.emit('sendData',p1.responsePTRTXT(instance,service));
 				}	
 			
 			}
@@ -97,7 +97,7 @@ function bonjourServer(){
 				if(p1.responsePTRSRV(instance,service)!= false ){
 					
 					mdns.respond(p1.responsePTRSRV(instance,service));
-					bonjour.emit('data',p1.responsePTRSRV(instance,service));
+					bonjour.emit('sendData',p1.responsePTRSRV(instance,service));
 
 				}
 			}
@@ -117,7 +117,7 @@ function bonjourServer(){
 				});
 				if(p1.responsePTRSRVTXT(instance,service)!= false ){
 					mdns.respond(p1.responsePTRSRVTXT(instance,service));
-					bonjour.emit('data',p1.responsePTRSRVTXT(instance,service));
+					bonjour.emit('sendData',p1.responsePTRSRVTXT(instance,service));
 				}
 			}
 
