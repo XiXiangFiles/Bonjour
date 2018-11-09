@@ -544,21 +544,19 @@ async function demoActions(serviceName,floder,idOfValue,cmd,flag){
 	}
 }
 async function subscribeComponet(serviceName,componets){
-	componets.forEach(function(componet){
-
-		// let promise=new Promise(function(resolve,reject){
-			
+		let promise=new Promise(function(resolve,reject){
+			componets.forEach(function(componet){
 			fs.mkdir(`profile/${serviceName}/subscription/${componet.id}`,function(err){
 				fs.writeFile(`profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`,JSON.stringify(componet),function(err){
 					if(!err)
 						console.log(`Subscription Component = profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`);
 				});
 			});
-		// });
-		// promise.then(function(full){
-			// console.log(full);
-			// console.log(componet);
-		// });
+		});
+		promise.then(function(full){
+			console.log(full);
+			console.log(componet);
+		});
 	});
 }
 
