@@ -8,6 +8,7 @@ const colors = require('colors');
 const lottery = require ('./sensor/lottery');
 const sensor = require('./sensor/temperature.js');
 const bonjour=require('./myService/bonjour.js');
+const wtm= require('./wtm/wtm.js');
 
 function gererateLinks(model,properties,actions,things,subscriptions,type,product,help,ui,customRelType){
 	
@@ -352,73 +353,6 @@ function createServer(service,port){
 
 }
 
-function init(name ,floder){
-
-	fs.mkdir('profile/'+name,function(err){
-		floder.forEach(function(e){
-			fs.mkdir('profile/'+name+'/'+e,function(err){
-				
-			});
-		});
-	});
-}
-
-function initWTM(id,createdAt, updateAt, name,description , tags , customFields,links) {
-
-	function generateLink(name){
-		return str='Link:<'+name+'/>; rel="'+name+'"\n';
-	}
-
-	let Links="";
-	let profile={};
-	let model={};
-	let floder=['model','properties','actions','things','subscription','type','product','help','ui','custom'];
-	fs.mkdir('profile',function(err){		
-	
-	});
-
-	init(name,floder);//generate the floder
-
-	profile.id=id;
-	profile.name=name;
-	profile.description=description;
-	profile.createdAt=createdAt;
-	profile.updateAt=updateAt;
-	profile.tags=tags;
-	profile.customFields=customFields;
-	
-	floder.forEach(function(e){
-		Links+=generateLink(e);
-	});
-
-	fs.writeFile(`profile/${name}/links`,Links, function (err) {
-  		if (!err)
-  			console.log(colors.yellow(`WT(${name}) root links saved`));
-	});
-	fs.writeFile('profile/'+name+'/'+name+".json",JSON.stringify(profile), function (err) {
-  		if (!err)
-  			console.log(colors.yellow(`WT(${name}) root json saved`));
-	});
-
-	return JSON.stringify(profile);
-}
-function generateWTMofVal(serviceName,floder,content){
-	
-	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
-		fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
-	 		if (!err)
-	  			console.log(colors.yellow(`${serviceName}/${floder} :\tWTM val is saved!`));
-		});
-	});
-}
-function generateWTMLink(serviceName,floder,content){
-	fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
-		fs.writeFile('profile/'+serviceName+'/'+floder+'/links',content, function (err) {
-	 		if (!err)
-	  			console.log(colors.yellow(`${serviceName}/${floder} :\tWTM links is saved!`));
-		});
-	});
-}
 
 function temperatureSensor(serviceName,id,name){
 
@@ -436,8 +370,8 @@ function temperatureSensor(serviceName,id,name){
 				obj.values.timestamp=data.timestamp;
 				obj.values.temperature=data.temperature;
 				obj.values.humidity=data.humidity;
-				generateWTMofVal(serviceName,'properties/'+id,obj);
-				generateWTMLink(serviceName,`properties/${id}`,link);
+				wtm.generateWTMofVal(serviceName,'properties/'+id,obj);
+				wtm.generateWTMLink(serviceName,`properties/${id}`,link);
 				resolve(`%{JSON.stringify(obj)}<;>${link}`);
 			});
 		}).then(function(full,reject){
@@ -446,230 +380,8 @@ function temperatureSensor(serviceName,id,name){
 //	obj.values={values:Math.floor((Math.random() * 20) + 1),timestamp:dt.format('Y-m-d H:M:S')};
 }
 
-function generateWTM(serviceName,domain){
 
-	const dirTree=require('directory-tree');
-	let properties=[];
-	let propertiesContent=[];
-	let actions=[];
-	let actionSet=new Set();
-	let actionsContent=[];
-	let things=[];
-	let thingsContent=[];
-	let subscriptions=[];
-	let subscriptionsContent=[];
-
-	
-	const tree = dirTree('profile/'+serviceName,{ extensions: /.json$/ },function(path,item){
-
-		let str=path.path.split('/');
-		
-		if(str.length > 4){
-			switch (str[2]){
-				case 'properties':
-					properties.push(path.path);
-				break;
-
-				case 'actions':
-					if(str.length >5){
-						actions.push(path.path);
-						actionSet.add(str[3]);
-					}
-				break;
-
-				case 'things':
-					things.push(path.path);
-				break;
-
-				case 'subscription':
-						subscriptions.push(path.path);
-				break;
-
-			}
-		}
-	});
-
-	if(properties.length >0){
-		for(let i=0; i<properties.length ; i++){
-
-			fs.readFile(properties[i],'utf8',function(err,data){
-				if(!err){
-					try{
-						propertiesContent.push(JSON.parse(data));
-						if(propertiesContent.length == properties.length){
-							let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
-							if(domain !== undefined){
-								generateWTMLink(serviceName,`properties/`,link);
-							}
-							generateWTMofVal(serviceName,`properties/`,propertiesContent);
-
-						}
-					}catch(e){
-						console.log(e);
-					}
-				}
-			});
-		}	
-	}
-	if(actions.length>0){
-
-		actionSet.forEach(function(classification){
-			let arr=[];
-			let count=0;
-			let promise=new Promise(function(resolve,reject){
-				actions.forEach(function(e){
-					let str=e.split('/');
-					if(str[3]==classification){
-						arr.push(e);
-					}
-					if(++count==actions.length){
-						let dataArry=[];
-						let subcount=0;
-						arr.forEach(function(path){
-							fs.readFile(path,'utf8',function(err,data){
-								dataArry.push(data);
-								if(++subcount==arr.length){
-									let promise=new Promise(function(resolve1,reject1){
-										// console.log(dataArry);
-										let subpath=path.split('/');
-										fs.writeFile(`${subpath[0]}/${subpath[1]}/${subpath[2]}/${subpath[3]}/${serviceName}.json`,dataArry,function(err){
-											if(!err){
-												console.log(colors.yellow(`WTM actions folder is update (${subpath[3]})`));
-												resolve1(0)
-												resolve(0);
-											}
-										});
-									});
-									promise.then((f,r)=>{
-										console.log(dataArry);
-									});
-								}
-							});
-						});
-					}
-				});
-			});
-			promise.then(function(full,rej){
-				console.log("--------------------------------------");
-			});	
-		});
-	}
-
-	if(subscriptions.length>0){
-
-		let arr=[];
-		let count=0;
-		subscriptions.forEach(function(subscription){
-			let promise=new Promise(function(resolve,reject){
-				// console.log("test subscription= "+subscription);
-				fs.readFile(subscription,'utf8',function(err,data){
-					if(!err){
-						arr.push(JSON.parse(data));
-					}
-					if(++count == subscriptions.length){
-						generateWTMofVal(serviceName,`subscription/`,arr);
-
-					}
-				});
-				resolve(0);
-			});
-			promise.then(function(full){
-				console.log("####################################");
-			});
-		});
-	}
-	function model(serviceName,domain,properties,actions,subscription,things){
-		
-		let map=new Map();
-		function generateResource(serviceName,arrResource,type){
-			
-			let promise=new Promise(function(resolve,reject){
-				let resource=[];
-				let actionResouce=new Set();
-				let count=0;
-				let length=arrResource.length;
-				arrResource.forEach(function(e){
-					
-						fs.readFile(e,'utf8',function(err,data){
-							let str="";
-							if(!err){
-								if(type == "properties"){
-									let obj=JSON.parse(data);
-									if(obj.values!=undefined)
-										str=`"${obj.id}":{"name":"${obj.id}","description":"none","values":${JSON.stringify(obj.values)}}`;
-									else
-										str=`"${obj.id}":{"name":"${obj.id}","description":"none","value":${JSON.stringify(obj.value)}}`;
-
-									resource.push(str);
-
-								}
-								if(type == "actions"){
-									actionResouce.add(data);
-								}				
-							}
-							if(++count == arrResource.length){
-								if(type != "actions")
-									resolve(resource);
-								else{
-									let str="";
-									let count2=0;
-									actionResouce.forEach(function(e){
-										let obj=JSON.parse(e);
-										str=`"${obj.id}":{"name":"${obj.id}","description":"none","value":${JSON.stringify(obj.value)}}`;
-										resource.push(str);
-									});
-									resolve(resource);
-
-								}
-							}
-						});
-					
-
-				});
-			});
-			// return promise;
-			promise.then(function(full){
-					map.set(type,full);
-					return full;
-			}).catch(function(rej){
-			});
-		}
-
-		let promiseMode=new Promise(function(resolve,reject){
-
-
-			generateResource(serviceName,properties,"properties");
-
-			generateResource(serviceName,actions,"actions");
-			setTimeout(function(){
-				resolve(0)
-			},100);
-		});
-		promiseMode.then(function(full){
-
-			let obj={};
-			obj.id=serviceName;
-			obj.description="";
-			obj.tags=[];
-			obj.customField={};
-			obj.customField.domain=domain;
-			obj.links={};
-			obj.links.properties={};
-			obj.links.properties.links="/properties";
-			obj.links.properties.title="List of Properties";
-			obj.links.properties.resource=JSON.parse(`{${map.get("properties")}}`);
-			obj.links.actions={};
-			obj.links.actions.links="/actions";
-			obj.links.actions.title="List of actions";
-			obj.links.actions.resource=JSON.parse(`{${map.get("actions")}}`);
-
-			generateWTMofVal(serviceName,`model/`,obj);
-
-		})
-	}
-	model(serviceName,domain,properties,actions,subscriptions,things)
-}
-function discribeAction(serviceName,doamin,actions){
+async function discribeAction(serviceName,doamin,actions){
 
 	let res=[];
 	let actionDemo=new Map();
@@ -688,15 +400,15 @@ function discribeAction(serviceName,doamin,actions){
 		demoActions(serviceName,key,actionDemo,"create");
 	});
 
-	generateWTMLink(serviceName,`actions/`,links);
-	generateWTMofVal(serviceName,`actions/`,res);
+	wtm.generateWTMLink(serviceName,`actions/`,links);
+	wtm.generateWTMofVal(serviceName,`actions/`,res);
 
 	return JSON.stringify(res);
 
 }
 
 // the idOfValue are Map object type that map the id and the value in object 
-function demoActions(serviceName,floder,idOfValue,cmd,flag){ 
+async function demoActions(serviceName,floder,idOfValue,cmd,flag){ 
 
 	let dt = datetime.create();
 	console.log(`floder = ${floder}  cmd = ${cmd}`);
@@ -728,19 +440,19 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 			});
 			fs.mkdir(`profile/${serviceName}/actions/${floder}`,function(err){
 				
-				generateWTMofVal(serviceName,`actions/${floder}`,arr);
+				wtm.generateWTMofVal(serviceName,`actions/${floder}`,arr);
 			
 				arr.forEach(function(e){
 
-					generateWTMofVal(serviceName,`actions/${floder}/${e.id}`,e);
+					wtm.generateWTMofVal(serviceName,`actions/${floder}/${e.id}`,e);
 					
 				});
 				properties.forEach(function(e){
 					let data=JSON.parse(e);
 					// generateWTMLink(serviceName,`properties/${id}`,link);
 					let link=`<model/>; rel"model"`;
-					generateWTMLink(serviceName,`properties/${data.id}`,link);
-					generateWTMofVal(serviceName,`properties/${data.id}`,data);
+					wtm.generateWTMLink(serviceName,`properties/${data.id}`,link);
+					wtm.generateWTMofVal(serviceName,`properties/${data.id}`,data);
 					
 				});
 			});
@@ -766,7 +478,7 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
 					if (!err){
 					  	console.log(colors.yellow(`WTM properties /${path[1]}/${serviceName}.json val is updated`));
-					  	generateWTM(serviceName,undefined);
+					  	wtm.generateWTM(serviceName,undefined);
 					}
 				});
 				lottery.ready();
@@ -793,7 +505,7 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
 					if (!err){
 					  	console.log(colors.yellow(`WTM properties /${path[1]}/${serviceName}.json val is updated`));
-					  	generateWTM(serviceName,undefined);
+					  	wtm.generateWTM(serviceName,undefined);
 					}
 				});
 				lottery.start();
@@ -818,7 +530,7 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 				fs.writeFile(`profile/${serviceName}/properties/${path[1]}/${serviceName}.json`,JSON.stringify(obj),function(err){
 					if (!err){
 					  	console.log(colors.yellow(`WTM properties /${path[1]}/${serviceName}.json val is updated`));
-					  	generateWTM(serviceName,undefined);
+					  	wtm.generateWTM(serviceName,undefined);
 					}
 				});
 				
@@ -831,23 +543,22 @@ function demoActions(serviceName,floder,idOfValue,cmd,flag){
 			return 1;
 	}
 }
-function subscribeComponet(serviceName,componets){
+async function subscribeComponet(serviceName,componets){
 	componets.forEach(function(componet){
 
-		let promise=new Promise(function(resolve,reject){
+		// let promise=new Promise(function(resolve,reject){
 			
 			fs.mkdir(`profile/${serviceName}/subscription/${componet.id}`,function(err){
 				fs.writeFile(`profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`,JSON.stringify(componet),function(err){
 					if(!err)
-						resolve(`Subscription Component = profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`);
+						console.log(`Subscription Component = profile/${serviceName}/subscription/${componet.id}/${serviceName}.json`);
 				});
 			});
-		});
-		promise.then(function(full){
-			console.log(full);
-			console.log(componet);
-		})
-
+		// });
+		// promise.then(function(full){
+			// console.log(full);
+			// console.log(componet);
+		// });
 	});
 }
 
@@ -896,33 +607,32 @@ function main(){
 	customField2.sensor="Temperature sensor";
 	customField2.type="DH11";
 		
-	initWTM(0,"2018-09-06","2018-09-07",serviceName[0],"This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));		
-	initWTM(1,"2018-09-06","2018-09-07",serviceName[1],"this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL")));
-	
-	// function temperatureSensor(serviceName,id,name)
-	setTimeout(()=>{temperatureSensor(serviceName[1],"temperature","DEMO 1")},100);
+	wtm.initWTM(0,"2018-09-06","2018-09-07",serviceName[0],"This is experiment device 1",[{tag:"0"}],customField,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL"))).then(function(){
+		wtm.initWTM(1,"2018-09-06","2018-09-07",serviceName[1],"this is experiment device 2",[{tag:"1"}],customField2,gererateLinks(properties("properties/","properties"), properties("action/","actions of this web things"),properties("product/","NULL"), properties("type/","NULL") ,properties("help/","NULL"),properties("ui/","NULL"),properties("custom/","NULL"))).then(function(){
+			temperatureSensor(serviceName[1],"temperature","DEMO 1");
+		}).then(function(){
+			let actions=new Map();
+			actions.set("Demo_lottery","the resource start");
+			actions.set("Demo_actions_restart","the resource restart");
+			discribeAction(serviceName[1],`${domain}.local:8080`,actions).then(function(){	
+				let websocket={};
+				let componetsArr=[];
+				websocket.id="DEMO_Temperature_WebSocket";
+				websocket.subscribeId="test1";
+				websocket.type="websocket";
+				websocket.resource="properties/temperature";
+				componetsArr.push(websocket);
+				subscribeComponet(serviceName[1],componetsArr).then(function(){
+					
+				setTimeout(()=>{
+					wtm.generateWTM(serviceName[1],`${domain}.local:8080`);
+				},1000);
 
-	let actions=new Map();
-	actions.set("Demo_lottery","the resource start");
-	actions.set("Demo_actions_restart","the resource restart");
-
-	// discribeAction(serviceName,doamin,actions)
-	// discribeAction(serviceName[1],`${domain}.local:8080`,actions);
-	setTimeout(()=>{discribeAction(serviceName[1],`${domain}.local:8080`,actions)},100);
-
-	let websocket={};
-	websocket.id="DEMO_Temperature_WebSocket";
-	websocket.subscribeId="test1";
-	websocket.type="websocket";
-	websocket.resource="properties/temperature";
-
-
-	let componetsArr=[];
-	componetsArr.push(websocket);
-
-	setTimeout(()=>{subscribeComponet(serviceName[1],componetsArr)},500);
-	
-	setTimeout(()=>{generateWTM(serviceName[1],`${domain}.local:8080`)},1000);
+				});
+				
+			});
+		});
+	});		
 }
 
 main();

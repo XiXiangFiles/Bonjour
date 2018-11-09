@@ -1,7 +1,9 @@
 const events=require('../node_modules/events');
+const fs=require('fs');
+const colors = require('../node_modules/colors');
 
 function WTM(){
-	let itself=new WTM();
+
 	let wtm=this;
 	events.EventEmitter.call(this);
 	function init(name ,floder){
@@ -14,7 +16,7 @@ function WTM(){
 			});
 		});
 	}
-	this.initWTM=function(id,createdAt, updateAt, name,description , tags , customFields,links) {
+	this.initWTM= async function(id,createdAt, updateAt, name,description , tags , customFields,links) {
 
 		function generateLink(name){
 			return str='Link:<'+name+'/>; rel="'+name+'"\n';
@@ -53,7 +55,7 @@ function WTM(){
 
 		return JSON.stringify(profile);
 	}
-	this.generateWTMofVal=function(serviceName,floder,content){
+	this.generateWTMofVal=async function(serviceName,floder,content){
 		
 		fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
 			fs.writeFile('profile/'+serviceName+'/'+floder+'/'+serviceName+".json",JSON.stringify(content), function (err) {
@@ -62,7 +64,7 @@ function WTM(){
 			});
 		});
 	}
-	this.generateWTMLink=function(serviceName,floder,content){
+	this.generateWTMLink=async function(serviceName,floder,content){
 		fs.mkdir('profile/'+serviceName+'/'+floder+'/',function(err){
 			fs.writeFile('profile/'+serviceName+'/'+floder+'/links',content, function (err) {
 		 		if (!err)
@@ -71,9 +73,9 @@ function WTM(){
 		});
 	}
 
-	this.generateWTM=function(serviceName,domain){
+	this.generateWTM=async function(serviceName,domain){
 
-		const dirTree=require('directory-tree');
+		const dirTree=require('../node_modules/directory-tree');
 		let properties=[];
 		let propertiesContent=[];
 		let actions=[];
@@ -84,7 +86,6 @@ function WTM(){
 		let subscriptions=[];
 		let subscriptionsContent=[];
 
-		
 		const tree = dirTree('profile/'+serviceName,{ extensions: /.json$/ },function(path,item){
 
 			let str=path.path.split('/');
@@ -124,9 +125,9 @@ function WTM(){
 							if(propertiesContent.length == properties.length){
 								let link=`Link:<http://${domain}/${serviceName}/properties/>; rel="type"`;
 								if(domain !== undefined){
-									itself.generateWTMLink(serviceName,`properties/`,link);
+									wtm.generateWTMLink(serviceName,`properties/`,link);
 								}
-								itself.generateWTMofVal(serviceName,`properties/`,propertiesContent);
+								wtm.generateWTMofVal(serviceName,`properties/`,propertiesContent);
 
 							}
 						}catch(e){
@@ -192,7 +193,7 @@ function WTM(){
 							arr.push(JSON.parse(data));
 						}
 						if(++count == subscriptions.length){
-							itself.generateWTMofVal(serviceName,`subscription/`,arr);
+							wtm.generateWTMofVal(serviceName,`subscription/`,arr);
 
 						}
 					});
@@ -206,7 +207,7 @@ function WTM(){
 		function model(serviceName,domain,properties,actions,subscription,things){
 			
 			let map=new Map();
-			function generateResource(serviceName,arrResource,type){
+			async function generateResource(serviceName,arrResource,type){
 				
 				let promise=new Promise(function(resolve,reject){
 					let resource=[];
@@ -288,7 +289,7 @@ function WTM(){
 				obj.links.actions.title="List of actions";
 				obj.links.actions.resource=JSON.parse(`{${map.get("actions")}}`);
 
-				itself.generateWTMofVal(serviceName,`model/`,obj);
+				wtm.generateWTMofVal(serviceName,`model/`,obj);
 
 			})
 		}
