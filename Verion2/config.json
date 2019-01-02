@@ -1,0 +1,14 @@
+{
+	"Instance":"percomTest",
+	"Service":["_transfer._sub._ssh._tcp.local"],
+	"SRV":{"port":10000,"weigth":0,"priority":0},
+	"TXT":["username=pi","pwd=testtest"],
+	"A":{"name":"percomTest.local","data":"192.168.43.204"},
+	"tags":{
+		"percomTest":{"description":"Demo service of resarch.","type":"root"},
+		"_transfer":{"description":"it used to communicate with controller.","type":"custom"},
+		"_temperature":{"description":"it is a temperature property","type":"properties"},
+		"_light":{"description":"it is a light actions","type":"actions"}
+	},
+	"folder":["model","properties","actions","things","subscription","type","product","help","ui","custom"]
+}
